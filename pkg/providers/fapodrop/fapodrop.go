@@ -20,6 +20,43 @@ var (
 	baseURL      = "https://www.fapodrop.com"
 )
 
+type FapodropProvider struct {
+}
+
+func (p *FapodropProvider) DownloadPhotos(userName string) error {
+	recentPhotoID, err := getRecentPhotoID(userName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	urlWithoutID, err := buildURL(userName)
+	if err != nil {
+		return err
+	}
+
+	downloadDir, err := getDownloadDirectory(userName)
+	if err != nil {
+		fmt.Println("Error while getting download directory:", err)
+		return err
+	}
+
+	for i := recentPhotoID; i >= 1; i-- {
+		paddedID := fmt.Sprintf("%04d", i)
+		photoName := fmt.Sprintf("%s_%s.jpeg", userName, paddedID)
+
+		photoSrc, err := url.JoinPath(urlWithoutID, photoName)
+		if err != nil {
+			return err
+		}
+
+		downloadPhoto(photoSrc, downloadDir)
+
+		println("Downloaded:", photoName)
+	}
+	return nil
+
+}
+
 func buildURL(name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
@@ -85,39 +122,6 @@ func downloadPhoto(src string, downloadDir string) {
 		fmt.Println("Error while copying file:", err)
 		return
 	}
-}
-
-func DownloadPhotos(name string) string {
-	recentPhotoID, err := getRecentPhotoID(name)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	urlWithoutID, err := buildURL(name)
-	if err != nil {
-		return ""
-	}
-
-	downloadDir, err := getDownloadDirectory(name)
-	if err != nil {
-		fmt.Println("Error while getting download directory:", err)
-		return ""
-	}
-
-	for i := recentPhotoID; i >= 1; i-- {
-		paddedID := fmt.Sprintf("%04d", i)
-		photoName := fmt.Sprintf("%s_%s.jpeg", name, paddedID)
-
-		photoSrc, err := url.JoinPath(urlWithoutID, photoName)
-		if err != nil {
-			return ""
-		}
-
-		downloadPhoto(photoSrc, downloadDir)
-
-		println("Downloaded:", photoName)
-	}
-	return ""
 }
 
 func getDownloadDirectory(name string) (string, error) {
