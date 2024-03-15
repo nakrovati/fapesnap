@@ -4,12 +4,12 @@ import (
 	"fapesnap/pkg/utils"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"os/user"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gocolly/colly"
@@ -20,23 +20,22 @@ var (
 	baseURL      = "https://www.fapodrop.com"
 )
 
-type FapodropProvider struct {
-}
+type FapodropProvider struct{}
 
 func (p *FapodropProvider) DownloadPhotos(userName string) error {
-	recentPhotoID, err := getRecentPhotoID(userName)
+	downloadDir, err := utils.GetDownloadDirectory(providerName, userName)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error while getting download directory:", err)
+		return err
 	}
 
-	urlWithoutID, err := buildURL(userName)
+	recentPhotoID, err := getRecentPhotoID(userName)
 	if err != nil {
 		return err
 	}
 
-	downloadDir, err := getDownloadDirectory(userName)
+	urlWithoutID, err := buildURL(userName)
 	if err != nil {
-		fmt.Println("Error while getting download directory:", err)
 		return err
 	}
 
@@ -83,7 +82,7 @@ func getRecentPhotoID(name string) (int, error) {
 		if !isFound {
 			src := e.Attr("href")
 
-			photoID, err := utils.ParsePhotoID(src)
+			photoID, err := parsePhotoID(src)
 			if err != nil {
 				return
 			}
@@ -124,25 +123,24 @@ func downloadPhoto(src string, downloadDir string) {
 	}
 }
 
-func getDownloadDirectory(name string) (string, error) {
-	usr, err := user.Current()
-
-	if err != nil {
-		return "", err
-	}
-	downloadDir := filepath.Join(usr.HomeDir, "Downloads", "fapesnap")
-
-	providerDir := filepath.Join(downloadDir, providerName, name)
-	err = os.MkdirAll(providerDir, 0755)
-	if err != nil {
-		fmt.Println("Error while creating download directory:", err)
-		return "", err
-	}
-
-	return providerDir, nil
-}
-
 func getFileName(url string) string {
 	parts := strings.Split(url, "/")
 	return parts[len(parts)-1]
+}
+
+func parsePhotoID(url string) (int, error) {
+	re := regexp.MustCompile(`\/\d{4}$`)
+
+	match := re.FindString(url)
+	if match == "" {
+		return 0, fmt.Errorf("invalid url: %s", url)
+	}
+
+	numStr := match[1:] // Take out the first "/"
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }

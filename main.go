@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fapesnap/pkg/providers/fapello"
 	"fapesnap/pkg/providers/fapodrop"
 	"log"
 
@@ -28,11 +29,24 @@ var (
 			fapodropProvider.DownloadPhotos(userName)
 		},
 	}
+	fapelloCmd = &cobra.Command{
+		Use:   "fapello",
+		Short: "Download photos from fapello",
+		Run: func(cmd *cobra.Command, args []string) {
+			if userName == "" {
+				log.Fatal("You must specify a username")
+			}
+			var fapelloProvider Provider = &fapello.FapelloProvider{}
+			fapelloProvider.DownloadPhotos(userName)
+		},
+	}
 )
 
 func init() {
 	rootCmd.AddCommand(fapodropCmd)
-	fapodropCmd.PersistentFlags().StringVarP(&userName, "username", "u", "", "Profile name in fapodrop/fapello")
+	rootCmd.AddCommand(fapelloCmd)
+	fapodropCmd.PersistentFlags().StringVarP(&userName, "username", "u", "", "Profile name in fapodrop")
+	fapelloCmd.PersistentFlags().StringVarP(&userName, "username", "u", "", "Profile name in fapello")
 }
 
 func main() {
