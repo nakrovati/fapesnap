@@ -125,11 +125,7 @@ func buildURL(userName string, recentId int) (string, error) {
 	secondSymbol := userName[1]
 	photoCountGroup := roundUp(recentId)
 
-	url, err := url.JoinPath(baseURL, "content", string(firstSymbol), string(secondSymbol), userName, strconv.Itoa(photoCountGroup))
-	if err != nil {
-		return "", err
-	}
-	return url, nil
+	return url.JoinPath(baseURL, "content", string(firstSymbol), string(secondSymbol), userName, strconv.Itoa(photoCountGroup))
 }
 
 func parsePhotoID(url string) (int, error) {
@@ -141,13 +137,7 @@ func parsePhotoID(url string) (int, error) {
 		return 0, fmt.Errorf("invalid url: %s", url)
 	}
 
-	id, err := strconv.Atoi(matches[1])
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
-
+	return strconv.Atoi(matches[1])
 }
 
 func roundUp(num int) int {

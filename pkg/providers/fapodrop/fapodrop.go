@@ -61,11 +61,7 @@ func buildURL(name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
 
-	url, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
-	if err != nil {
-		return "", err
-	}
-	return url, nil
+	return url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
 }
 
 func getRecentPhotoID(name string) (int, error) {
@@ -138,10 +134,5 @@ func parsePhotoID(url string) (int, error) {
 	}
 
 	numStr := match[1:] // Take out the first "/"
-	num, err := strconv.Atoi(numStr)
-	if err != nil {
-		return 0, err
-	}
-
-	return num, nil
+	return strconv.Atoi(numStr)
 }
