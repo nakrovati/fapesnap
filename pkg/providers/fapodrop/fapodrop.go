@@ -22,16 +22,18 @@ var (
 
 type FapodropProvider struct{}
 
-func (p *FapodropProvider) DownloadPhotos(userName string) error {
+func (p *FapodropProvider) DownloadPhotos(userName string, min int, max int) error {
 	downloadDir, err := utils.GetDownloadDirectory(providerName, userName)
 	if err != nil {
 		fmt.Println("Error while getting download directory:", err)
 		return err
 	}
 
-	recentPhotoID, err := getRecentPhotoID(userName)
-	if err != nil {
-		return err
+	recentPhotoID := max
+	if max == 100000 {
+		if recentPhotoID, err = getRecentPhotoID(userName); err != nil {
+			return err
+		}
 	}
 
 	urlWithoutID, err := buildURL(userName)
@@ -39,7 +41,7 @@ func (p *FapodropProvider) DownloadPhotos(userName string) error {
 		return err
 	}
 
-	for i := recentPhotoID; i >= 1; i-- {
+	for i := recentPhotoID; i >= min; i-- {
 		paddedID := fmt.Sprintf("%04d", i)
 		photoName := fmt.Sprintf("%s_%s.jpeg", userName, paddedID)
 
@@ -53,7 +55,6 @@ func (p *FapodropProvider) DownloadPhotos(userName string) error {
 		println("Downloaded:", photoName)
 	}
 	return nil
-
 }
 
 func buildURL(name string) (string, error) {

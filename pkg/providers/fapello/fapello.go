@@ -22,16 +22,18 @@ var (
 
 type FapelloProvider struct{}
 
-func (p *FapelloProvider) DownloadPhotos(userName string) error {
+func (p *FapelloProvider) DownloadPhotos(userName string, min int, max int) error {
 	downloadDir, err := utils.GetDownloadDirectory(providerName, userName)
 	if err != nil {
 		fmt.Println("Error while getting download directory:", err)
 		return err
 	}
 
-	recentPhotoID, err := getRecentPhotoID(userName)
-	if err != nil {
-		return err
+	recentPhotoID := max
+	if max == 100000 {
+		if recentPhotoID, err = getRecentPhotoID(userName); err != nil {
+			return err
+		}
 	}
 
 	urlWithoutID, err := buildURL(userName, recentPhotoID)
