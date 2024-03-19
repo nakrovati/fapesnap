@@ -20,12 +20,10 @@ var (
 		Use:   "fapodrop",
 		Short: "Download photos from fapodrop",
 		Run: func(cmd *cobra.Command, args []string) {
-			fapodropProvider := fapodrop.FapodropProvider{
-				ProviderName: "fapodrop",
-				BaseURL:      "https://fapodrop.com",
-			}
+			fapodropProvider := fapodrop.FapodropProvider{}
+			fapodropProvider.InitProvider()
 
-			downloader := downloader.Downloader{ProviderName: fapodropProvider.ProviderName, PhotosProvider: &fapodropProvider}
+			downloader := downloader.Downloader{PhotosProvider: &fapodropProvider}
 			downloader.DownloadPhotos(userName, min, max)
 		},
 	}
@@ -33,12 +31,10 @@ var (
 		Use:   "fapello",
 		Short: "Download photos from fapello",
 		Run: func(cmd *cobra.Command, args []string) {
-			fapelloProvider := fapello.FapelloProvider{
-				ProviderName: "fapello",
-				BaseURL:      "https://fapello.com",
-			}
+			fapelloProvider := fapello.FapelloProvider{}
+			fapelloProvider.InitProvider()
 
-			downloader := downloader.Downloader{ProviderName: fapelloProvider.ProviderName, PhotosProvider: &fapelloProvider}
+			downloader := downloader.Downloader{PhotosProvider: &fapelloProvider}
 			downloader.DownloadPhotos(userName, min, max)
 		},
 	}

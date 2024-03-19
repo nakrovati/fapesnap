@@ -15,6 +15,15 @@ type FapelloProvider struct {
 	BaseURL      string
 }
 
+func (p *FapelloProvider) InitProvider() {
+	p.ProviderName = "fapello"
+	p.BaseURL = "https://fapello.com"
+}
+
+func (p *FapelloProvider) GetProviderName() string {
+	return p.ProviderName
+}
+
 func (p *FapelloProvider) GetPhotoURL(photoID int, userName string) (string, error) {
 	urlWithoutID, err := buildURL(p.BaseURL, userName, photoID)
 	if err != nil {

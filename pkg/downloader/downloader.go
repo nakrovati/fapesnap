@@ -11,13 +11,14 @@ import (
 )
 
 type PhotosProvider interface {
+	InitProvider()
+	GetProviderName() string
 	GetFileName(src string) string
 	GetPhotoURL(photoID int, userName string) (string, error)
 	GetRecentPhotoID(userName string) (int, error)
 }
 
 type Downloader struct {
-	ProviderName string
 	PhotosProvider
 }
 
@@ -38,7 +39,7 @@ func (d *Downloader) DownloadPhotos(userName string, min int, max int) error {
 		}
 	}
 
-	downloadDir, err := utils.GetDownloadDirectory(d.ProviderName, userName)
+	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), userName)
 	if err != nil {
 		fmt.Println("Error while getting download directory:", err)
 		return err
