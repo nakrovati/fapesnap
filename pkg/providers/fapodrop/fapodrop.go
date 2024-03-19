@@ -1,13 +1,8 @@
 package fapodrop
 
 import (
-	"fapesnap/pkg/utils"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,59 +10,38 @@ import (
 	"github.com/gocolly/colly"
 )
 
-var (
-	providerName = "fapodrop"
-	baseURL      = "https://www.fapodrop.com"
-)
-
-type FapodropProvider struct{}
-
-func (p *FapodropProvider) DownloadPhotos(userName string, min int, max int) error {
-	downloadDir, err := utils.GetDownloadDirectory(providerName, userName)
-	if err != nil {
-		fmt.Println("Error while getting download directory:", err)
-		return err
-	}
-
-	recentPhotoID := max
-	if max == 100000 {
-		if recentPhotoID, err = getRecentPhotoID(userName); err != nil {
-			return err
-		}
-	}
-
-	urlWithoutID, err := buildURL(userName)
-	if err != nil {
-		return err
-	}
-
-	for i := recentPhotoID; i >= min; i-- {
-		paddedID := fmt.Sprintf("%04d", i)
-		photoName := fmt.Sprintf("%s_%s.jpeg", userName, paddedID)
-
-		photoSrc, err := url.JoinPath(urlWithoutID, photoName)
-		if err != nil {
-			return err
-		}
-
-		downloadPhoto(photoSrc, downloadDir)
-
-		println("Downloaded:", photoName)
-	}
-	return nil
+type FapodropProvider struct {
+	ProviderName string
+	BaseURL      string
 }
 
-func buildURL(name string) (string, error) {
+func (p *FapodropProvider) GetPhotoURL(photoID int, userName string) (string, error) {
+	urlWithoutID, err := buildURL(p.BaseURL, userName)
+	if err != nil {
+		return "", err
+	}
+
+	paddedID := fmt.Sprintf("%04d", photoID)
+	photoName := fmt.Sprintf("%s_%s.jpeg", userName, paddedID)
+
+	url, err := url.JoinPath(urlWithoutID, photoName)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
+}
+
+func buildURL(baseURL string, name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
 
 	return url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
 }
 
-func getRecentPhotoID(name string) (int, error) {
+func (p *FapodropProvider) GetRecentPhotoID(name string) (int, error) {
 	c := colly.NewCollector()
 
-	recentPhotoSrc, err := url.JoinPath(baseURL, name)
+	recentPhotoSrc, err := url.JoinPath(p.BaseURL, name)
 	if err != nil {
 		return 0, err
 	}
@@ -98,29 +72,7 @@ func getRecentPhotoID(name string) (int, error) {
 	return recentPhotoID, nil
 }
 
-func downloadPhoto(src string, downloadDir string) {
-	resp, err := http.Get(src)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	fileName := filepath.Join(downloadDir, getFileName(src))
-	file, err := os.Create(fileName)
-	if err != nil {
-		fmt.Println("Error while creating file:", err)
-		return
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
-		fmt.Println("Error while copying file:", err)
-		return
-	}
-}
-
-func getFileName(url string) string {
+func (p *FapodropProvider) GetFileName(url string) string {
 	parts := strings.Split(url, "/")
 	return parts[len(parts)-1]
 }

@@ -1,17 +1,12 @@
 package main
 
 import (
+	"fapesnap/pkg/downloader"
 	"fapesnap/pkg/providers/fapello"
 	"fapesnap/pkg/providers/fapodrop"
-	"fapesnap/pkg/utils"
-	"log"
 
 	"github.com/spf13/cobra"
 )
-
-type Provider interface {
-	DownloadPhotos(userName string, min int, max int) error
-}
 
 var (
 	userName string
@@ -25,34 +20,26 @@ var (
 		Use:   "fapodrop",
 		Short: "Download photos from fapodrop",
 		Run: func(cmd *cobra.Command, args []string) {
-			if userName == "" {
-				log.Fatal("You must specify a username")
+			fapodropProvider := fapodrop.FapodropProvider{
+				ProviderName: "fapodrop",
+				BaseURL:      "https://fapodrop.com",
 			}
 
-			err := utils.ValidateMinMax(min, max)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			var fapodropProvider Provider = &fapodrop.FapodropProvider{}
-			fapodropProvider.DownloadPhotos(userName, min, max)
+			downloader := downloader.Downloader{ProviderName: fapodropProvider.ProviderName, PhotosProvider: &fapodropProvider}
+			downloader.DownloadPhotos(userName, min, max)
 		},
 	}
 	fapelloCmd = &cobra.Command{
 		Use:   "fapello",
 		Short: "Download photos from fapello",
 		Run: func(cmd *cobra.Command, args []string) {
-			if userName == "" {
-				log.Fatal("You must specify a username")
+			fapelloProvider := fapello.FapelloProvider{
+				ProviderName: "fapello",
+				BaseURL:      "https://fapello.com",
 			}
 
-			err := utils.ValidateMinMax(min, max)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			var fapelloProvider Provider = &fapello.FapelloProvider{}
-			fapelloProvider.DownloadPhotos(userName, min, max)
+			downloader := downloader.Downloader{ProviderName: fapelloProvider.ProviderName, PhotosProvider: &fapelloProvider}
+			downloader.DownloadPhotos(userName, min, max)
 		},
 	}
 )

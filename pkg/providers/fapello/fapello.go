@@ -1,13 +1,8 @@
 package fapello
 
 import (
-	"fapesnap/pkg/utils"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,81 +10,35 @@ import (
 	"github.com/gocolly/colly"
 )
 
-var (
-	providerName = "fapello"
-	baseURL      = "https://fapello.com"
-)
-
-type FapelloProvider struct{}
-
-func (p *FapelloProvider) DownloadPhotos(userName string, min int, max int) error {
-	downloadDir, err := utils.GetDownloadDirectory(providerName, userName)
-	if err != nil {
-		fmt.Println("Error while getting download directory:", err)
-		return err
-	}
-
-	recentPhotoID := max
-	if max == 100000 {
-		if recentPhotoID, err = getRecentPhotoID(userName); err != nil {
-			return err
-		}
-	}
-
-	urlWithoutID, err := buildURL(userName, recentPhotoID)
-	if err != nil {
-		return err
-	}
-
-	for i := recentPhotoID; i >= 1; i-- {
-		photoID := strconv.Itoa(i)
-		photoName := fmt.Sprintf("%s_%s.jpg", userName, photoID)
-
-		photoSrc, err := url.JoinPath(urlWithoutID, photoName)
-		if err != nil {
-			return err
-		}
-
-		println(photoSrc)
-		downloadPhoto(photoSrc, downloadDir)
-
-		println("Downloaded:", photoName)
-	}
-
-	return nil
+type FapelloProvider struct {
+	ProviderName string
+	BaseURL      string
 }
 
-func downloadPhoto(src string, downloadDir string) {
-	resp, err := http.Get(src)
+func (p *FapelloProvider) GetPhotoURL(photoID int, userName string) (string, error) {
+	urlWithoutID, err := buildURL(p.BaseURL, userName, photoID)
 	if err != nil {
-		return
+		return "", err
 	}
-	defer resp.Body.Close()
 
-	fileName := filepath.Join(downloadDir, getFileName(src))
-	file, err := os.Create(fileName)
-	if err != nil {
-		fmt.Println("Error while creating file:", err)
-		return
-	}
-	defer file.Close()
+	photoName := fmt.Sprintf("%s_%v.jpg", userName, photoID)
 
-	_, err = io.Copy(file, resp.Body)
+	url, err := url.JoinPath(urlWithoutID, photoName)
 	if err != nil {
-		fmt.Println("Error while copying file:", err)
-		return
+		return "", err
 	}
+	return url, nil
 }
 
-func getFileName(url string) string {
+func (p *FapelloProvider) GetFileName(url string) string {
 	parts := strings.Split(url, "/")
 	return parts[len(parts)-1]
 }
 
-func getRecentPhotoID(userName string) (int, error) {
+func (p *FapelloProvider) GetRecentPhotoID(name string) (int, error) {
 	c := colly.NewCollector()
 
-	recentPhotoSrc, err := url.JoinPath(baseURL, userName)
+	recentPhotoSrc, err := url.JoinPath(p.BaseURL, name)
 	if err != nil {
 		return 0, err
 	}
@@ -114,13 +63,13 @@ func getRecentPhotoID(userName string) (int, error) {
 	c.Visit(recentPhotoSrc)
 
 	if !isFound {
-		return 0, fmt.Errorf("user %s not found", userName)
+		return 0, fmt.Errorf("user %s not found", name)
 	}
 
 	return recentPhotoID, nil
 }
 
-func buildURL(userName string, recentId int) (string, error) {
+func buildURL(baseURL string, userName string, recentId int) (string, error) {
 	firstSymbol := userName[0]
 	secondSymbol := userName[1]
 	photoCountGroup := roundUp(recentId)
