@@ -4,6 +4,7 @@ import (
 	"fapesnap/pkg/downloader"
 	"fapesnap/pkg/providers/fapello"
 	"fapesnap/pkg/providers/fapodrop"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -24,7 +25,10 @@ var (
 			fapodropProvider.InitProvider()
 
 			downloader := downloader.Downloader{PhotosProvider: &fapodropProvider}
-			downloader.DownloadPhotos(userName, min, max)
+			err := downloader.DownloadPhotos(userName, min, max)
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 	fapelloCmd = &cobra.Command{
@@ -35,7 +39,10 @@ var (
 			fapelloProvider.InitProvider()
 
 			downloader := downloader.Downloader{PhotosProvider: &fapelloProvider}
-			downloader.DownloadPhotos(userName, min, max)
+			err := downloader.DownloadPhotos(userName, min, max)
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
@@ -47,12 +54,16 @@ func init() {
 	fapodropCmd.Flags().StringVarP(&userName, "username", "u", "", "Profile name in fapodrop")
 	fapodropCmd.Flags().IntVarP(&min, "min", "", 1, "Minimum photo ID")
 	fapodropCmd.Flags().IntVarP(&max, "max", "", 100000, "Maximum photo ID")
-	fapodropCmd.MarkFlagRequired("username")
+	if err := fapodropCmd.MarkFlagRequired("username"); err != nil {
+		log.Fatal(err)
+	}
 
 	fapelloCmd.Flags().StringVarP(&userName, "username", "u", "", "Profile name in fapello")
 	fapelloCmd.Flags().IntVarP(&min, "min", "", 1, "Minimum photo ID")
 	fapelloCmd.Flags().IntVarP(&max, "max", "", 100000, "Maximum photo ID")
-	fapelloCmd.MarkFlagRequired("username")
+	if err := fapelloCmd.MarkFlagRequired("username"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Execute() {

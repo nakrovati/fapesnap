@@ -4,7 +4,6 @@ import (
 	"fapesnap/pkg/utils"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,12 +23,12 @@ type Downloader struct {
 
 func (d *Downloader) DownloadPhotos(userName string, min int, max int) error {
 	if userName == "" {
-		log.Fatal("You must specify a username")
+		return fmt.Errorf("username cannot be empty")
 	}
 
 	err := utils.ValidateMinMax(min, max)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	recentPhotoID := max

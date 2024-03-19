@@ -72,10 +72,8 @@ func (p *FapodropProvider) GetRecentPhotoID(name string) (int, error) {
 		}
 	})
 
-	c.Visit(recentPhotoSrc)
-
-	if !isFound {
-		return 0, fmt.Errorf("user %s not found", name)
+	if err := c.Visit(recentPhotoSrc); err != nil {
+		return 0, err
 	}
 
 	return recentPhotoID, nil
