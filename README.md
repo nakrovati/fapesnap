@@ -1,4 +1,4 @@
-# Fapeloader - fapello/fapodrop CMD downloader
+# Fapesnap - fapello/fapodrop CMD downloader
 
 Handy CMD utility for downloading photos from fapello/fapodrop.
 
@@ -7,12 +7,12 @@ Handy CMD utility for downloading photos from fapello/fapodrop.
 Open the directories with the program and write
 
 ```sh
-fapeloader fapodrop -u {username}
+fapesnap fapodrop -u {username}
 ```
 
 ## Installation
 
-All releases are in the "releases" section at this link - <https://github.com/nakrovati/fapeloader/releases>.
+All releases are in the "releases" section at this link - <https://github.com/nakrovati/fapesnap/releases>.
 
 ### Windows
 
