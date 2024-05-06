@@ -1,0 +1,23 @@
+linters:
+  presets:
+    - style
+    - bugs
+    - unused
+    - complexity
+    - comment
+    - format
+    - performance
+  disable:
+    - dupl
+    - exhaustruct
+    - mnd
+    - gci
+    - depguard
+    - wrapcheck
+    - forbidigo
+    - err113
+
+linters-settings:
+  varnamelen:
+    ignore-decls:
+      - c *colly.Collector

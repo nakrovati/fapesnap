@@ -15,7 +15,7 @@ func GetDownloadDirectory(providerName string, userName string) (string, error) 
 
 	downloadDir := filepath.Join(usr.HomeDir, "Downloads", "fapesnap", providerName, userName)
 
-	err = os.MkdirAll(downloadDir, 0755)
+	err = os.MkdirAll(downloadDir, 0o755)
 	if err != nil {
 		return "", fmt.Errorf("failed to create download directory: %w", err)
 	}

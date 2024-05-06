@@ -10,21 +10,21 @@ import (
 	"github.com/gocolly/colly"
 )
 
-type FapodropProvider struct {
+type Provider struct {
 	ProviderName string
 	BaseURL      string
 }
 
-func (p *FapodropProvider) GetProviderName() string {
+func (p *Provider) GetProviderName() string {
 	return p.ProviderName
 }
 
-func (p *FapodropProvider) InitProvider() {
+func (p *Provider) InitProvider() {
 	p.ProviderName = "fapodrop"
 	p.BaseURL = "https://fapodrop.com"
 }
 
-func (p *FapodropProvider) GetPhotoURL(photoID int, userName string) (string, error) {
+func (p *Provider) GetPhotoURL(photoID int, userName string) (string, error) {
 	urlWithoutID, err := buildURL(p.BaseURL, userName)
 	if err != nil {
 		return "", err
@@ -37,6 +37,7 @@ func (p *FapodropProvider) GetPhotoURL(photoID int, userName string) (string, er
 	if err != nil {
 		return "", err
 	}
+
 	return url, nil
 }
 
@@ -44,10 +45,15 @@ func buildURL(baseURL string, name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
 
-	return url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
+	photoURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
+	if err != nil {
+		return "", err
+	}
+
+	return photoURL, nil
 }
 
-func (p *FapodropProvider) GetRecentPhotoID(name string) (int, error) {
+func (p *Provider) GetRecentPhotoID(name string) (int, error) {
 	c := colly.NewCollector()
 
 	recentPhotoSrc, err := url.JoinPath(p.BaseURL, name)
@@ -79,8 +85,9 @@ func (p *FapodropProvider) GetRecentPhotoID(name string) (int, error) {
 	return recentPhotoID, nil
 }
 
-func (p *FapodropProvider) GetFileName(url string) string {
+func (p *Provider) GetFileName(url string) string {
 	parts := strings.Split(url, "/")
+
 	return parts[len(parts)-1]
 }
 
@@ -93,5 +100,11 @@ func parsePhotoID(url string) (int, error) {
 	}
 
 	numStr := match[1:] // Take out the first "/"
-	return strconv.Atoi(numStr)
+
+	photoID, err := strconv.Atoi(numStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return photoID, err
 }
