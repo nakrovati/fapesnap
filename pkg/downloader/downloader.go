@@ -67,7 +67,7 @@ func (d *Downloader) DownloadPhotos(userName string, min int, max int) error {
 			continue
 		}
 
-		fmt.Printf("downloaded: %s", photoURL)
+		fmt.Printf("downloaded: %s\n", photoURL)
 	}
 
 	return nil
@@ -89,6 +89,15 @@ func (d Downloader) DownloadPhoto(src string, dir string) error {
 		return fmt.Errorf("photo %s not found %w", src, ErrPhotoNotFound)
 	}
 
+	err = d.SavePhoto(resp, src, dir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d Downloader) SavePhoto(resp *http.Response, src string, dir string) error {
 	fileName := filepath.Join(dir, d.PhotosProvider.GetFileName(src))
 
 	file, err := os.Create(fileName)
