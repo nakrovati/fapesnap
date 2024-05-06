@@ -1,6 +1,8 @@
 package main
 
-import "fapesnap/cmd"
+import (
+	"fapesnap/cmd"
+)
 
 func main() {
 	cmd.Execute()

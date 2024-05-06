@@ -30,7 +30,8 @@ func (p *FapelloProvider) GetPhotoURL(photoID int, userName string) (string, err
 		return "", err
 	}
 
-	photoName := fmt.Sprintf("%s_%v.jpg", userName, photoID)
+	paddedID := fmt.Sprintf("%04d", photoID)
+	photoName := fmt.Sprintf("%s_%v.jpg", userName, paddedID)
 
 	url, err := url.JoinPath(urlWithoutID, photoName)
 	if err != nil {
