@@ -3,7 +3,7 @@ package downloader
 import (
 	"context"
 	"errors"
-	"fapesnap/pkg/utils"
+	"fapesnap/internal/pkg/utils"
 	"fmt"
 	"io"
 	"log"
