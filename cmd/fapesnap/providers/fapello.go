@@ -2,6 +2,7 @@ package providers
 
 import (
 	"fapesnap/internal/downloader"
+	"fapesnap/internal/pkg/utils"
 	"fapesnap/pkg/providers/fapello"
 	"log"
 
@@ -18,15 +19,20 @@ func InitFapelloCmd() *cobra.Command {
 		Use:   "fapello",
 		Short: "Download photos from fapello",
 		Run: func(cmd *cobra.Command, _ []string) {
-			userName, _ := cmd.Flags().GetString("username")
+			username, _ := cmd.Flags().GetString("username")
 			min, _ := cmd.Flags().GetInt("min")
 			max, _ := cmd.Flags().GetInt("max")
 
-			fapelloProvider := fapello.Provider{}
+			err := utils.ValidateMinMax(min, max)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fapelloProvider := fapello.Provider{MinPhotoID: min, MaxPhotoID: max, Username: username}
 			fapelloProvider.InitProvider()
 
 			downloader := downloader.Downloader{PhotosProvider: &fapelloProvider}
-			err := downloader.DownloadPhotos(userName, min, max)
+			err = downloader.DownloadPhotos()
 			if err != nil {
 				log.Fatal(err)
 			}

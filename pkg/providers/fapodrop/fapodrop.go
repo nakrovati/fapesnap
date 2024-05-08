@@ -11,8 +11,11 @@ import (
 )
 
 type Provider struct {
+	MaxPhotoID   int
+	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
+	Username     string
 }
 
 func (p *Provider) GetProviderName() string {
@@ -24,14 +27,22 @@ func (p *Provider) InitProvider() {
 	p.BaseURL = "https://fapodrop.com"
 }
 
-func (p *Provider) GetPhotoURL(photoID int, userName string) (string, error) {
-	urlWithoutID, err := buildURL(p.BaseURL, userName)
+func (p *Provider) GetCollectionName() string {
+	return p.Username
+}
+
+func (p *Provider) GetMinMaxPhotoID() (int, int) {
+	return p.MinPhotoID, p.MaxPhotoID
+}
+
+func (p *Provider) GetPhotoURL(photoID int) (string, error) {
+	urlWithoutID, err := buildURL(p.BaseURL, p.Username)
 	if err != nil {
 		return "", err
 	}
 
 	paddedID := fmt.Sprintf("%04d", photoID)
-	photoName := fmt.Sprintf("%s_%s.jpeg", userName, paddedID)
+	photoName := fmt.Sprintf("%s_%s.jpeg", p.Username, paddedID)
 
 	url, err := url.JoinPath(urlWithoutID, photoName)
 	if err != nil {
@@ -53,10 +64,10 @@ func buildURL(baseURL string, name string) (string, error) {
 	return photoURL, nil
 }
 
-func (p *Provider) GetRecentPhotoID(name string) (int, error) {
+func (p *Provider) GetRecentPhotoID() (int, error) {
 	c := colly.NewCollector()
 
-	recentPhotoSrc, err := url.JoinPath(p.BaseURL, name)
+	userSrc, err := url.JoinPath(p.BaseURL, p.Username)
 	if err != nil {
 		return 0, err
 	}
@@ -64,7 +75,7 @@ func (p *Provider) GetRecentPhotoID(name string) (int, error) {
 	isFound := false
 	recentPhotoID := 0
 
-	c.OnHTML(fmt.Sprintf(".row .one-pack a[href^='/%s']", name), func(e *colly.HTMLElement) {
+	c.OnHTML(fmt.Sprintf(".row .one-pack a[href^='/%s']", p.Username), func(e *colly.HTMLElement) {
 		if !isFound {
 			src := e.Attr("href")
 
@@ -78,9 +89,7 @@ func (p *Provider) GetRecentPhotoID(name string) (int, error) {
 		}
 	})
 
-	if err := c.Visit(recentPhotoSrc); err != nil {
-		return 0, err
-	}
+	c.Visit(userSrc)
 
 	return recentPhotoID, nil
 }

@@ -11,8 +11,11 @@ import (
 )
 
 type Provider struct {
+	MaxPhotoID   int
+	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
+	Username     string
 }
 
 func (p *Provider) InitProvider() {
@@ -20,18 +23,26 @@ func (p *Provider) InitProvider() {
 	p.BaseURL = "https://fapello.com"
 }
 
+func (p *Provider) GetMinMaxPhotoID() (int, int) {
+	return p.MinPhotoID, p.MaxPhotoID
+}
+
 func (p *Provider) GetProviderName() string {
 	return p.ProviderName
 }
 
-func (p *Provider) GetPhotoURL(photoID int, userName string) (string, error) {
-	urlWithoutID, err := buildURL(p.BaseURL, userName, photoID)
+func (p *Provider) GetCollectionName() string {
+	return p.Username
+}
+
+func (p *Provider) GetPhotoURL(photoID int) (string, error) {
+	urlWithoutID, err := buildURL(p.BaseURL, p.Username, photoID)
 	if err != nil {
 		return "", err
 	}
 
 	paddedID := fmt.Sprintf("%04d", photoID)
-	photoName := fmt.Sprintf("%s_%v.jpg", userName, paddedID)
+	photoName := fmt.Sprintf("%s_%v.jpg", p.Username, paddedID)
 
 	url, err := url.JoinPath(urlWithoutID, photoName)
 	if err != nil {
@@ -47,10 +58,10 @@ func (p *Provider) GetFileName(url string) string {
 	return parts[len(parts)-1]
 }
 
-func (p *Provider) GetRecentPhotoID(name string) (int, error) {
+func (p *Provider) GetRecentPhotoID() (int, error) {
 	c := colly.NewCollector()
 
-	recentPhotoSrc, err := url.JoinPath(p.BaseURL, name)
+	userSrc, err := url.JoinPath(p.BaseURL, p.Username)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +69,7 @@ func (p *Provider) GetRecentPhotoID(name string) (int, error) {
 	isFound := false
 	recentPhotoID := 0
 
-	c.OnHTML("#content div a", func(e *colly.HTMLElement) {
+	c.OnHTML(fmt.Sprintf("#content div a[href*='%s']", p.Username), func(e *colly.HTMLElement) {
 		if !isFound {
 			src := e.Attr("href")
 
@@ -72,19 +83,21 @@ func (p *Provider) GetRecentPhotoID(name string) (int, error) {
 		}
 	})
 
-	if err := c.Visit(recentPhotoSrc); err != nil {
-		return 0, err
+	c.Visit(userSrc)
+
+	if !isFound {
+		return 0, fmt.Errorf("user not found")
 	}
 
 	return recentPhotoID, nil
 }
 
-func buildURL(baseURL string, userName string, recentID int) (string, error) {
-	firstSymbol := string(userName[0])
-	secondSymbol := string(userName[1])
-	photoCountGroup := roundUp(recentID)
+func buildURL(baseURL string, username string, recentID int) (string, error) {
+	firstSymbol := string(username[0])
+	secondSymbol := string(username[1])
+	photoCountGroup := strconv.Itoa(roundUp(recentID))
 
-	photoURL, err := url.JoinPath(baseURL, "content", firstSymbol, secondSymbol, userName, strconv.Itoa(photoCountGroup))
+	photoURL, err := url.JoinPath(baseURL, "content", firstSymbol, secondSymbol, username, photoCountGroup)
 	if err != nil {
 		return "", err
 	}

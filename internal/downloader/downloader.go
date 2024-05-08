@@ -21,41 +21,37 @@ var (
 
 type PhotosProvider interface {
 	InitProvider()
+	GetCollectionName() string
 	GetProviderName() string
 	GetFileName(src string) string
-	GetPhotoURL(photoID int, userName string) (string, error)
-	GetRecentPhotoID(userName string) (int, error)
+	GetPhotoURL(photoID int) (string, error)
+	GetRecentPhotoID() (int, error)
+	GetMinMaxPhotoID() (int, int)
 }
 
 type Downloader struct {
 	PhotosProvider
 }
 
-func (d *Downloader) DownloadPhotos(userName string, min int, max int) error {
-	if userName == "" {
-		return ErrUsernameEmpty
-	}
+func (d *Downloader) DownloadPhotos() error {
+	min, max := d.GetMinMaxPhotoID()
 
-	err := utils.ValidateMinMax(min, max)
-	if err != nil {
-		return fmt.Errorf("invalid min/max: %w", err)
-	}
+	if max == 100000 {
+		var err error
 
-	recentPhotoID := max
-
-	if max == MaxPhotoID {
-		if recentPhotoID, err = d.PhotosProvider.GetRecentPhotoID(userName); err != nil {
+		max, err = d.PhotosProvider.GetRecentPhotoID()
+		if err != nil {
 			return fmt.Errorf("failed to get recent photo ID: %w", err)
 		}
 	}
 
-	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), userName)
+	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), d.GetCollectionName())
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	for i := recentPhotoID; i >= min; i-- {
-		photoURL, err := d.PhotosProvider.GetPhotoURL(i, userName)
+	for i := max; i >= min; i-- {
+		photoURL, err := d.PhotosProvider.GetPhotoURL(i)
 		if err != nil {
 			return fmt.Errorf("failed to get photo URL: %w", err)
 		}

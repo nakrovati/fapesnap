@@ -2,6 +2,7 @@ package providers
 
 import (
 	"fapesnap/internal/downloader"
+	"fapesnap/internal/pkg/utils"
 	"fapesnap/pkg/providers/fapodrop"
 	"log"
 
@@ -18,15 +19,20 @@ func InitFapodropCmd() *cobra.Command {
 		Use:   "fapodrop",
 		Short: "Download photos from fapodrop",
 		Run: func(cmd *cobra.Command, _ []string) {
-			userName, _ := cmd.Flags().GetString("username")
+			username, _ := cmd.Flags().GetString("username")
 			min, _ := cmd.Flags().GetInt("min")
 			max, _ := cmd.Flags().GetInt("max")
 
-			fapodropProvider := fapodrop.Provider{}
+			err := utils.ValidateMinMax(min, max)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fapodropProvider := fapodrop.Provider{MaxPhotoID: max, MinPhotoID: min, Username: username}
 			fapodropProvider.InitProvider()
 
 			downloader := downloader.Downloader{PhotosProvider: &fapodropProvider}
-			err := downloader.DownloadPhotos(userName, min, max)
+			err = downloader.DownloadPhotos()
 			if err != nil {
 				log.Fatal(err)
 			}
