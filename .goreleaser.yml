@@ -5,3 +5,6 @@ builds:
   - id: fapesnap
     dir: .
     main: ./cmd/fapesnap
+    goarch:
+      - "amd64"
+      - "arm64"
