@@ -24,34 +24,30 @@ type PhotosProvider interface {
 	GetCollectionName() string
 	GetProviderName() string
 	GetFileName(src string) string
-	GetPhotoURL(photoID int) (string, error)
+	GetPhotoURL(photoID string) (string, error)
+	GetPhotos() ([]string, error)
 	GetRecentPhotoID() (int, error)
-	GetMinMaxPhotoID() (int, int)
 }
 
 type Downloader struct {
-	PhotosProvider
+	PhotosProvider PhotosProvider
 }
 
 func (d *Downloader) DownloadPhotos() error {
-	min, max := d.GetMinMaxPhotoID()
-
-	if max == 100000 {
-		var err error
-
-		max, err = d.PhotosProvider.GetRecentPhotoID()
-		if err != nil {
-			return fmt.Errorf("failed to get recent photo ID: %w", err)
-		}
-	}
-
-	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), d.GetCollectionName())
+	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), d.PhotosProvider.GetCollectionName())
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	for i := max; i >= min; i-- {
-		photoURL, err := d.PhotosProvider.GetPhotoURL(i)
+	photos, err := d.PhotosProvider.GetPhotos()
+	if err != nil {
+		return fmt.Errorf("failed to get photos: %w", err)
+	}
+
+	for i := len(photos) - 1; i >= 0; i-- {
+		photoID := photos[i]
+
+		photoURL, err := d.PhotosProvider.GetPhotoURL(photoID)
 		if err != nil {
 			return fmt.Errorf("failed to get photo URL: %w", err)
 		}

@@ -31,17 +31,41 @@ func (p *Provider) GetCollectionName() string {
 	return p.Username
 }
 
-func (p *Provider) GetMinMaxPhotoID() (int, int) {
-	return p.MinPhotoID, p.MaxPhotoID
+func (p *Provider) GetPhotos() ([]string, error) {
+	if p.MinPhotoID > p.MaxPhotoID {
+		return []string{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
+	}
+
+	recentPhotoID, err := p.GetRecentPhotoID()
+	if err != nil {
+		return []string{}, err
+	}
+
+	if p.MaxPhotoID > recentPhotoID {
+		p.MaxPhotoID = recentPhotoID
+	}
+
+	photos := make([]string, p.MaxPhotoID-p.MinPhotoID+1)
+
+	for i := p.MinPhotoID; i <= p.MaxPhotoID; i++ {
+		photos[i-p.MinPhotoID] = strconv.Itoa(i)
+	}
+
+	return photos, nil
 }
 
-func (p *Provider) GetPhotoURL(photoID int) (string, error) {
+func (p *Provider) GetPhotoURL(photoID string) (string, error) {
+	intPhotoID, err := strconv.Atoi(photoID)
+	if err != nil {
+		return "", err
+	}
+
 	urlWithoutID, err := buildURL(p.BaseURL, p.Username)
 	if err != nil {
 		return "", err
 	}
 
-	paddedID := fmt.Sprintf("%04d", photoID)
+	paddedID := fmt.Sprintf("%04d", intPhotoID)
 	photoName := fmt.Sprintf("%s_%s.jpeg", p.Username, paddedID)
 
 	url, err := url.JoinPath(urlWithoutID, photoName)
