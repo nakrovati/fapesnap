@@ -26,7 +26,7 @@ type PhotosProvider interface {
 	GetFileName(src string) string
 	GetPhotoURL(photoID string) (string, error)
 	GetPhotos() ([]string, error)
-	GetRecentPhotoID() (int, error)
+	GetRecentPhotoID() (string, error)
 }
 
 type Downloader struct {

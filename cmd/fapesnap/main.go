@@ -14,6 +14,7 @@ func initRootCmd() *cobra.Command {
 
 	rootCmd.AddCommand(providers.InitFapelloCmd())
 	rootCmd.AddCommand(providers.InitFapodropCmd())
+	rootCmd.AddCommand(providers.InitBunkrCmd())
 
 	return rootCmd
 }

@@ -45,8 +45,10 @@ func (p *Provider) GetPhotos() ([]string, error) {
 		return []string{}, err
 	}
 
-	if p.MaxPhotoID > recentPhotoID {
-		p.MaxPhotoID = recentPhotoID
+	intRecentPhotoID, _ := strconv.Atoi(recentPhotoID)
+
+	if p.MaxPhotoID > intRecentPhotoID {
+		p.MaxPhotoID = intRecentPhotoID
 	}
 
 	photos := make([]string, p.MaxPhotoID-p.MinPhotoID+1)
@@ -86,12 +88,12 @@ func (p *Provider) GetFileName(url string) string {
 	return parts[len(parts)-1]
 }
 
-func (p *Provider) GetRecentPhotoID() (int, error) {
+func (p *Provider) GetRecentPhotoID() (string, error) {
 	c := colly.NewCollector()
 
 	userSrc, err := url.JoinPath(p.BaseURL, p.Username)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	isFound := false
@@ -114,10 +116,10 @@ func (p *Provider) GetRecentPhotoID() (int, error) {
 	c.Visit(userSrc)
 
 	if !isFound {
-		return 0, fmt.Errorf("user not found")
+		return "", fmt.Errorf("user not found")
 	}
 
-	return recentPhotoID, nil
+	return strconv.Itoa(recentPhotoID), nil
 }
 
 func buildURL(baseURL string, username string, recentID int) (string, error) {
