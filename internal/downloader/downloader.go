@@ -3,13 +3,14 @@ package downloader
 import (
 	"context"
 	"errors"
-	"fapesnap/internal/pkg/utils"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 )
 
 const MaxPhotoID = 100000
@@ -19,47 +20,24 @@ var (
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
-type PhotosProvider interface {
-	InitProvider()
-	GetCollectionName() string
-	GetProviderName() string
-	GetFileName(src string) string
-	GetPhotoURL(photoID string) (string, error)
-	GetPhotos() ([]string, error)
-	GetRecentPhotoID() (string, error)
-}
+type Downloader struct{}
 
-type Downloader struct {
-	PhotosProvider PhotosProvider
-}
-
-func (d *Downloader) DownloadPhotos() error {
-	downloadDir, err := utils.GetDownloadDirectory(d.PhotosProvider.GetProviderName(), d.PhotosProvider.GetCollectionName())
+func (d *Downloader) DownloadPhotos(urls []string, providerName string, collectionName string) error {
+	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	photos, err := d.PhotosProvider.GetPhotos()
-	if err != nil {
-		return fmt.Errorf("failed to get photos: %w", err)
-	}
+	for i := len(urls) - 1; i >= 0; i-- {
+		url := urls[i]
 
-	for i := len(photos) - 1; i >= 0; i-- {
-		photoID := photos[i]
-
-		photoURL, err := d.PhotosProvider.GetPhotoURL(photoID)
-		if err != nil {
-			return fmt.Errorf("failed to get photo URL: %w", err)
-		}
-
-		err = d.DownloadPhoto(photoURL, downloadDir)
+		err = d.DownloadPhoto(url, downloadDir)
 		if err != nil {
 			log.Println("error while downloading photo:", err)
-
 			continue
 		}
 
-		fmt.Printf("downloaded: %s\n", photoURL)
+		fmt.Printf("downloaded: %s\n", url)
 	}
 
 	return nil
@@ -90,9 +68,10 @@ func (d Downloader) DownloadPhoto(src string, dir string) error {
 }
 
 func (d Downloader) SavePhoto(resp *http.Response, src string, dir string) error {
-	fileName := filepath.Join(dir, d.PhotosProvider.GetFileName(src))
+	fileName := filepath.Base(src)
+	filePath := filepath.Join(dir, fileName)
 
-	file, err := os.Create(fileName)
+	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}

@@ -1,3 +1,9 @@
+issues:
+  exclude-dirs:
+    - build/
+    - assets/
+    - frontend/
+
 linters:
   presets:
     - style
