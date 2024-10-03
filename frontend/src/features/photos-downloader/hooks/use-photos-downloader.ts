@@ -1,10 +1,11 @@
 import { DownloadPhotos, GetPhotos } from "$wails/go/main/App";
 import { createSignal } from "solid-js";
 import { showToast } from "~/components/ui/toast";
+import { photoStore, setPhotoStore } from "../stores/photo-store";
 
 export function usePhotosDownloader() {
   const [collection, setCollection] = createSignal("");
-  const [photos, setPhotos] = createSignal<string[]>([]);
+  const [photos, setPhotos] = createSignal<string[]>(photoStore.photos);
   const [loading, setLoading] = createSignal(false);
 
   function downloadPhotos(provider: string) {
@@ -28,12 +29,11 @@ export function usePhotosDownloader() {
   function previewPhotos(provider: string) {
     setLoading(true);
 
-    // const pattern = providerUrlPatterns[provider as Providers];
-    // const result = processInput(collection(), pattern);
-
     GetPhotos(collection(), provider)
       .then((result) => {
         setPhotos(result.toReversed());
+
+        setPhotoStore("photos", result);
       })
       .catch((error) => {
         showToast({

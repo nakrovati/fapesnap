@@ -28,7 +28,7 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	if collection == "" {
-		return nil, fmt.Errorf("collection cannot be empty")
+		return nil, fmt.Errorf("Collection cannot be empty")
 	}
 
 	a.scraper = scraper.NewScraper(provider)
@@ -41,10 +41,9 @@ func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	return photos, nil
 }
 
-// Greet returns a greeting for the given name.
 func (a *App) DownloadPhotos(collection string, provider string) ([]string, error) {
 	if collection == "" {
-		return nil, fmt.Errorf("collection cannot be empty")
+		return nil, fmt.Errorf("Collection cannot be empty")
 	}
 
 	a.scraper = scraper.NewScraper(provider)

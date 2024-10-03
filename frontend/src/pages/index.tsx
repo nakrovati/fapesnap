@@ -1,9 +1,5 @@
 import { Button } from "~/components/ui/button";
-import {
-  TextField,
-  TextFieldInput,
-  TextFieldLabel,
-} from "~/components/ui/text-field";
+import { TextField, TextFieldInput } from "~/components/ui/text-field";
 import {
   PhotosPreview,
   usePhotosDownloader,
@@ -22,8 +18,6 @@ function IndexPage() {
     provider().type === "id"
       ? "Enter the album ID or URL"
       : "Enter the user's name or profile URL";
-  const collectionTextFieldLabel = () =>
-    provider().type === "id" ? "Album ID" : "Username";
 
   function handleDownloadPhotos() {
     downloadPhotos(provider().value);
@@ -37,9 +31,6 @@ function IndexPage() {
     <>
       <div class="flex place-items-end gap-2">
         <TextField class="w-full">
-          <TextFieldLabel for="collection">
-            {collectionTextFieldLabel()}
-          </TextFieldLabel>
           <TextFieldInput
             placeholder={collectionTextFieldPlaceholder()}
             type="text"

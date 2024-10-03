@@ -17,7 +17,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "fapesnap",
+		Title:     "Fapesnap",
 		Width:     1024,
 		MinWidth:  640,
 		Height:    768,

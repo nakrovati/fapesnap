@@ -3,22 +3,41 @@ import { Route, Router } from "@solidjs/router";
 import { render } from "solid-js/web";
 import { Toaster } from "~/components/ui/toast";
 import "./style.css";
-import IndexPage from "~/pages/index-page";
+import {
+  ColorModeProvider,
+  ColorModeScript,
+  createLocalStorageManager,
+} from "@kobalte/core";
+import IndexPage from "~/pages";
+import SettingsPage from "~/pages/settings";
 import DefaultLayout from "./default-layout";
 
 const root = document.getElementById("root");
 if (!root) {
-	throw new Error("Root element not found");
+  throw new Error("Root element not found");
 }
 
-render(
-	() => (
-		<>
-			<Router root={DefaultLayout}>
-				<Route path="/" component={IndexPage} />
-			</Router>
-			<Toaster />
-		</>
-	),
-	root,
-);
+function App() {
+  const storageManager = createLocalStorageManager("theme");
+
+  return (
+    <>
+      <Router
+        root={(props) => (
+          <>
+            <ColorModeScript storageType={storageManager.type} />
+            <ColorModeProvider storageManager={storageManager}>
+              <DefaultLayout>{props.children}</DefaultLayout>
+            </ColorModeProvider>
+            <Toaster />
+          </>
+        )}
+      >
+        <Route path="/" component={IndexPage} />
+        <Route path="/settings" component={SettingsPage} />
+      </Router>
+    </>
+  );
+}
+
+render(App, root);
