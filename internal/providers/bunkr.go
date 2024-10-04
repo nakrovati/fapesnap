@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -20,12 +21,12 @@ func (p *BunkrProvider) InitProvider() {
 }
 
 func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
-	photosURLsFromHref, err := p.GetPhotoUrls(collection)
+	photosURLsFromHref, err := p.GetPhotoURLs(collection)
 	if err != nil {
 		return []string{}, err
 	}
 
-	photos := make([]string, 0)
+	photos := make([]string, 0, len(photosURLsFromHref))
 
 	for _, photoURLFromHref := range photosURLsFromHref {
 		photoURL, err := p.GetPhotoURL(photoURLFromHref)
@@ -36,11 +37,13 @@ func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
 		photos = append(photos, photoURL)
 	}
 
+	slices.Reverse(photos)
+
 	return photos, nil
 }
 
-func (p BunkrProvider) GetPhotoUrls(album string) ([]string, error) {
-	albumURL, err := url.JoinPath(p.BaseURL, "a", album)
+func (p BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
+	albumURL, err := url.JoinPath(p.BaseURL, "a", albumID)
 	if err != nil {
 		return []string{}, err
 	}

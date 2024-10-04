@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -37,15 +38,20 @@ func (p FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
 		p.MaxPhotoID = recentPhotoID
 	}
 
-	photos := make([]string, p.MaxPhotoID-p.MinPhotoID+1)
+	photos := make([]string, 0, p.MaxPhotoID-p.MinPhotoID+1)
 
 	for i := p.MinPhotoID; i <= p.MaxPhotoID; i++ {
 		photoID := strconv.Itoa(i)
-		photos[i-p.MinPhotoID], err = p.GetPhotoURL(photoID, collection)
+
+		photoURL, err := p.GetPhotoURL(photoID, collection)
 		if err != nil {
 			return []string{}, err
 		}
+
+		photos = append(photos, photoURL)
 	}
+
+	slices.Reverse(photos)
 
 	return photos, nil
 }

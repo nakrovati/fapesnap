@@ -1,5 +1,4 @@
 import { Route, Router } from "@solidjs/router";
-/* @refresh reload */
 import { render } from "solid-js/web";
 import { Toaster } from "~/components/ui/toast";
 import "./style.css";
@@ -10,7 +9,7 @@ import {
 } from "@kobalte/core";
 import IndexPage from "~/pages";
 import SettingsPage from "~/pages/settings";
-import DefaultLayout from "./default-layout";
+import { DefaultLayout } from "./default-layout";
 
 const root = document.getElementById("root");
 if (!root) {

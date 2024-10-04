@@ -31,9 +31,11 @@ export function usePhotosDownloader() {
 
     GetPhotos(collection(), provider)
       .then((result) => {
-        setPhotos(result.toReversed());
+        setPhotos(result);
 
         setPhotoStore("photos", result);
+
+        console.log(result);
       })
       .catch((error) => {
         showToast({

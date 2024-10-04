@@ -1,17 +1,15 @@
 import type { ParentComponent } from "solid-js";
-import Nav from "~/components/Nav";
+import { Nav } from "~/components/nav";
 import { Separator } from "~/components/ui/separator";
 
-const DefaultLayout: ParentComponent = (props) => {
-	return (
-		<div class="grid grid-cols-[auto_auto_1fr]">
-			<Nav />
+export const DefaultLayout: ParentComponent = (props) => {
+  return (
+    <div class="h-screen flex">
+      <Nav />
 
-			<Separator orientation="vertical" />
+      <Separator orientation="vertical" />
 
-			<main class="p-4">{props.children}</main>
-		</div>
-	);
+      <main class="p-4 w-full">{props.children}</main>
+    </div>
+  );
 };
-
-export default DefaultLayout;

@@ -1,10 +1,12 @@
 import { A } from "@solidjs/router";
 import { buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { KoFiButton } from "./kofi-button";
+import { Separator } from "./ui/separator";
 
-function Nav() {
+export function Nav() {
   return (
-    <div class="p-4 flex flex-col min-h-[100dvh]">
+    <nav class="p-4 flex flex-col">
       <A
         activeClass="bg-accent"
         href="/"
@@ -20,8 +22,10 @@ function Nav() {
       >
         Settings
       </A>
-    </div>
+
+      <Separator class="my-2" />
+
+      <KoFiButton variant={"ghost"} class="justify-start" />
+    </nav>
   );
 }
-
-export default Nav;

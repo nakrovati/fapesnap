@@ -4,8 +4,8 @@ interface PhotosStore {
   photos: string[];
 }
 
-const [store, setStore] = createStore<PhotosStore>({
+const [photoStore, setPhotoStore] = createStore<PhotosStore>({
   photos: [],
 });
 
-export { store as photoStore, setStore as setPhotoStore };
+export { photoStore, setPhotoStore };

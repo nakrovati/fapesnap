@@ -28,9 +28,9 @@ function IndexPage() {
   }
 
   return (
-    <>
-      <div class="flex place-items-end gap-2">
-        <TextField class="w-full">
+    <div class="flex flex-col grow h-full">
+      <div class="flex gap-2">
+        <TextField class="grow">
           <TextFieldInput
             placeholder={collectionTextFieldPlaceholder()}
             type="text"
@@ -54,8 +54,10 @@ function IndexPage() {
         </Button>
       </div>
 
-      <PhotosPreview photos={photos()} loading={loading()} />
-    </>
+      <div class="overflow-y-auto mt-4">
+        <PhotosPreview photos={photos()} loading={loading()} />
+      </div>
+    </div>
   );
 }
 
