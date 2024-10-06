@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -13,11 +14,16 @@ import (
 type BunkrProvider struct {
 	ProviderName string
 	BaseURL      string
+	ctx          context.Context
 }
 
 func (p *BunkrProvider) InitProvider() {
 	p.ProviderName = "bunkr"
 	p.BaseURL = "https://bunkrrr.org"
+}
+
+func (p *BunkrProvider) SetContext(ctx context.Context) {
+	p.ctx = ctx
 }
 
 func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {

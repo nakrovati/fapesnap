@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const MaxPhotoID = 100000
@@ -20,7 +20,13 @@ var (
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
-type Downloader struct{}
+type Downloader struct {
+	ctx context.Context
+}
+
+func (d *Downloader) SetContext(ctx context.Context) {
+	d.ctx = ctx
+}
 
 func (d *Downloader) DownloadPhotos(urls []string, providerName string, collectionName string) error {
 	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
@@ -28,17 +34,19 @@ func (d *Downloader) DownloadPhotos(urls []string, providerName string, collecti
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	for i := len(urls) - 1; i >= 0; i-- {
-		url := urls[i]
+	runtime.EventsEmit(d.ctx, "download-start")
 
-		err = d.DownloadPhoto(url, downloadDir)
+	downloadedPhotosCount := 0
+
+	for i := len(urls) - 1; i >= 0; i-- {
+		err = d.DownloadPhoto(urls[i], downloadDir)
 		if err != nil {
-			log.Println("error while downloading photo:", err)
 			continue
 		}
-
-		fmt.Printf("downloaded: %s\n", url)
+		downloadedPhotosCount += 1
 	}
+
+	runtime.EventsEmit(d.ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
 
 	return nil
 }

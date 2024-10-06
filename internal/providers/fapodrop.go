@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -17,11 +18,16 @@ type FapodropProvider struct {
 	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
+	ctx          context.Context
 }
 
 func (p *FapodropProvider) InitProvider() {
 	p.ProviderName = "fapodrop"
 	p.BaseURL = "https://fapodrop.com"
+}
+
+func (p *FapodropProvider) SetContext(ctx context.Context) {
+	p.ctx = ctx
 }
 
 func (p FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {

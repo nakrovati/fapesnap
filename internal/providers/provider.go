@@ -1,6 +1,9 @@
 package providers
 
+import "context"
+
 type Provider interface {
+	SetContext(ctx context.Context)
 	FetchPhotoURLs(collection string) ([]string, error)
 	GetCollectionFromURL(url string) (string, error)
 }

@@ -32,6 +32,7 @@ func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	}
 
 	a.scraper = scraper.NewScraper(provider)
+	a.scraper.SetContext(a.ctx)
 
 	photos, err := a.scraper.GetPhotoURLs(collection)
 	if err != nil {
@@ -54,6 +55,8 @@ func (a *App) DownloadPhotos(collection string, provider string) ([]string, erro
 	}
 
 	a.downloader = downloader.Downloader{}
+	a.downloader.SetContext(a.ctx)
+
 	err = a.downloader.DownloadPhotos(photos, provider, collection)
 	if err != nil {
 		return nil, fmt.Errorf("Error downloading photos: %v", err)

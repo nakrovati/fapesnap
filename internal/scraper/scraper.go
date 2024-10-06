@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/nakrovati/fapesnap/internal/providers"
@@ -8,6 +9,12 @@ import (
 
 type Scraper struct {
 	provider providers.Provider
+	ctx      context.Context
+}
+
+func (s *Scraper) SetContext(ctx context.Context) {
+	s.ctx = ctx
+	s.provider.SetContext(ctx)
 }
 
 func NewScraper(providerName string) *Scraper {

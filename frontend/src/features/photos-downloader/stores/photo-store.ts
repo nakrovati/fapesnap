@@ -1,11 +1,11 @@
 import { createStore } from "solid-js/store";
 
 interface PhotosStore {
-  photos: string[];
+	photos: string[];
 }
 
 const [photoStore, setPhotoStore] = createStore<PhotosStore>({
-  photos: [],
+	photos: [],
 });
 
 export { photoStore, setPhotoStore };
