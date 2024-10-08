@@ -22,8 +22,8 @@ func NewScraper(providerName string) *Scraper {
 }
 
 func (s *Scraper) GetPhotoURLs(collection string) ([]string, error) {
-	_, err := url.Parse(collection)
-	if err != nil {
+	u, err := url.Parse(collection)
+	if err == nil && u.Scheme != "" && u.Host != "" {
 		collectionString, err := s.provider.GetCollectionFromURL(collection)
 		if err != nil {
 			return []string{}, err
