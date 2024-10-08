@@ -1,9 +1,7 @@
 package providers
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"net/url"
 	"slices"
 	"strings"
@@ -14,16 +12,11 @@ import (
 type BunkrProvider struct {
 	ProviderName string
 	BaseURL      string
-	ctx          context.Context
 }
 
 func (p *BunkrProvider) InitProvider() {
 	p.ProviderName = "bunkr"
 	p.BaseURL = "https://bunkrrr.org"
-}
-
-func (p *BunkrProvider) SetContext(ctx context.Context) {
-	p.ctx = ctx
 }
 
 func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
@@ -64,10 +57,13 @@ func (p BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
 		photosURLs = append(photosURLs, href)
 	})
 
-	c.Visit(albumURL)
+	err = c.Visit(albumURL)
+	if err != nil {
+		return []string{}, err
+	}
 
 	if len(photosURLs) == 0 {
-		return []string{}, fmt.Errorf("album not found")
+		return []string{}, errors.New("album not found")
 	}
 
 	return photosURLs, nil
@@ -80,14 +76,14 @@ func (p BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) && !strings.Contains(inputURL, "bunkr") {
-		return "", errors.New("Unvalid domain")
+		return "", errors.New("unvalid domain")
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
 	parts := strings.Split(inputURL, "/")
 
 	if len(parts) < 5 || parts[len(parts)-1] == "" {
-		return "", errors.New("Can't get collection from url")
+		return "", errors.New("can't get collection from url")
 	}
 
 	return parts[len(parts)-1], nil
@@ -101,10 +97,13 @@ func (p BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
 		}
 	})
 
-	c.Visit(photoURL)
+	err := c.Visit(photoURL)
+	if err != nil {
+		return "", err
+	}
 
 	if photoURL == "" {
-		return "", fmt.Errorf("photo not found")
+		return "", errors.New("photo not found")
 	}
 
 	return photoURL, nil

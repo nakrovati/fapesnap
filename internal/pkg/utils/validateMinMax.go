@@ -10,16 +10,16 @@ var (
 	ErrMinGreaterThanMax      = errors.New("min cannot be greater than max")
 )
 
-func ValidateMinMax(min int, max int) error {
-	if min < 1 || max < 1 {
+func ValidateMinMax(minValue int, maxValue int) error {
+	if minValue < 1 || maxValue < 1 {
 		return ErrMinMaxLessThanOne
 	}
 
-	if min > 100000 || max > 100000 {
+	if minValue > 100000 || maxValue > 100000 {
 		return ErrMinMaxGreaterThanLimit
 	}
 
-	if min > max {
+	if minValue > maxValue {
 		return ErrMinGreaterThanMax
 	}
 

@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -18,16 +17,11 @@ type FapodropProvider struct {
 	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
-	ctx          context.Context
 }
 
 func (p *FapodropProvider) InitProvider() {
 	p.ProviderName = "fapodrop"
 	p.BaseURL = "https://fapodrop.com"
-}
-
-func (p *FapodropProvider) SetContext(ctx context.Context) {
-	p.ctx = ctx
 }
 
 func (p FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
@@ -69,14 +63,14 @@ func (p FapodropProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) {
-		return "", errors.New("Unvalid domain")
+		return "", errors.New("unvalid domain")
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
 	parts := strings.Split(inputURL, "/")
 
 	if len(parts) < 4 || parts[len(parts)-1] == "" {
-		return "", errors.New("Can't get collection from url")
+		return "", errors.New("can't get collection from url")
 	}
 
 	return parts[len(parts)-1], nil

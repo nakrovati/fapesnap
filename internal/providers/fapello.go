@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -10,9 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nakrovati/fapesnap/internal/pkg/utils"
-
 	"github.com/gocolly/colly/v2"
+	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 )
 
 type FapelloProvider struct {
@@ -20,16 +18,11 @@ type FapelloProvider struct {
 	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
-	ctx          context.Context
 }
 
 func (p *FapelloProvider) InitProvider() {
 	p.ProviderName = "fapello"
 	p.BaseURL = "https://fapello.com"
-}
-
-func (p *FapelloProvider) SetContext(ctx context.Context) {
-	p.ctx = ctx
 }
 
 func (p FapelloProvider) FetchPhotoURLs(collection string) ([]string, error) {
@@ -71,14 +64,14 @@ func (p FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) {
-		return "", errors.New("Unvalid domain")
+		return "", errors.New("unvalid domain")
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
 	parts := strings.Split(inputURL, "/")
 
 	if len(parts) < 4 || parts[len(parts)-1] == "" {
-		return "", errors.New("Can't get collection from url")
+		return "", errors.New("can't get collection from url")
 	}
 
 	return parts[len(parts)-1], nil
@@ -137,7 +130,7 @@ func (p FapelloProvider) GetRecentPhotoID(username string) (int, error) {
 	}
 
 	if !isFound {
-		return 0, fmt.Errorf("user not found")
+		return 0, errors.New("user not found")
 	}
 
 	return recentPhotoID, nil

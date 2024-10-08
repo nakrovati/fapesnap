@@ -9,3 +9,7 @@ export function DownloadPhotos(arg1, arg2) {
 export function GetPhotos(arg1, arg2) {
   return window['go']['main']['App']['GetPhotos'](arg1, arg2);
 }
+
+export function StopTask() {
+  return window['go']['main']['App']['StopTask']();
+}

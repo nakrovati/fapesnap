@@ -20,39 +20,53 @@ var (
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
-type Downloader struct {
-	ctx context.Context
-}
+type Downloader struct{}
 
-func (d *Downloader) SetContext(ctx context.Context) {
-	d.ctx = ctx
-}
-
-func (d *Downloader) DownloadPhotos(urls []string, providerName string, collectionName string) error {
+func (d *Downloader) DownloadPhotos(
+	ctx context.Context,
+	urls []string,
+	providerName string,
+	collectionName string,
+) error {
 	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	runtime.EventsEmit(d.ctx, "download-start")
+	runtime.EventsEmit(ctx, "download-start")
 
 	downloadedPhotosCount := 0
 
-	for i := len(urls) - 1; i >= 0; i-- {
-		err = d.DownloadPhoto(urls[i], downloadDir)
-		if err != nil {
-			continue
-		}
-		downloadedPhotosCount += 1
-	}
+	defer func() {
+		runtime.EventsEmit(ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
+	}()
 
-	runtime.EventsEmit(d.ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
+	for i := len(urls) - 1; i >= 0; i-- {
+		select {
+		case <-ctx.Done():
+			runtime.EventsEmit(ctx,
+				"download-canceled",
+				fmt.Sprintf("Canceled after downloading %d photos", downloadedPhotosCount),
+			)
+
+			return ctx.Err()
+		default:
+			err = d.DownloadPhoto(ctx, urls[i], downloadDir)
+			if err != nil {
+				fmt.Printf("Failed to download photo from %s: %v\n", urls[i], err)
+
+				continue
+			}
+
+			downloadedPhotosCount++
+		}
+	}
 
 	return nil
 }
 
-func (d Downloader) DownloadPhoto(src string, dir string) error {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, src, nil)
+func (d Downloader) DownloadPhoto(ctx context.Context, src string, dir string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

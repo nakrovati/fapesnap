@@ -1,11 +1,13 @@
-package providers
+package providers_test
 
 import (
 	"testing"
+
+	"github.com/nakrovati/fapesnap/internal/providers"
 )
 
 func TestFapelloService_GetCollectionStringFromURL(t *testing.T) {
-	provider := &FapelloProvider{}
+	provider := &providers.FapelloProvider{}
 	provider.InitProvider()
 
 	tests := []struct {
@@ -33,6 +35,7 @@ func TestFapelloService_GetCollectionStringFromURL(t *testing.T) {
 				if err != nil {
 					t.Errorf("Not expected error for URL %s, but got %v", test.url, err)
 				}
+
 				if result != test.expectedUser {
 					t.Errorf("Expected %s, but got %s", test.expectedUser, result)
 				}

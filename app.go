@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/nakrovati/fapesnap/internal/downloader"
@@ -12,7 +13,9 @@ import (
 type App struct {
 	scraper    *scraper.Scraper
 	downloader downloader.Downloader
+	//nolint:containedctx
 	ctx        context.Context
+	cancelFunc context.CancelFunc
 }
 
 // NewApp creates a new App application struct.
@@ -28,38 +31,53 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	if collection == "" {
-		return nil, fmt.Errorf("Collection cannot be empty")
+		return nil, errors.New("collection cannot be empty")
 	}
 
 	a.scraper = scraper.NewScraper(provider)
-	a.scraper.SetContext(a.ctx)
 
 	photos, err := a.scraper.GetPhotoURLs(collection)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get photo URLs: %w", err)
 	}
 
 	return photos, nil
 }
 
-func (a *App) DownloadPhotos(collection string, provider string) ([]string, error) {
-	if collection == "" {
-		return nil, fmt.Errorf("Collection cannot be empty")
+func (a *App) DownloadPhotos(collectionName string, providerName string) error {
+	if collectionName == "" {
+		return errors.New("collection cannot be empty")
 	}
 
-	a.scraper = scraper.NewScraper(provider)
+	a.StopTask()
 
-	photos, err := a.scraper.GetPhotoURLs(collection)
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.cancelFunc = cancel
+
+	a.scraper = scraper.NewScraper(providerName)
+
+	photoURLs, err := a.scraper.GetPhotoURLs(collectionName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	a.downloader = downloader.Downloader{}
-	a.downloader.SetContext(a.ctx)
 
-	err = a.downloader.DownloadPhotos(photos, provider, collection)
-	if err != nil {
-		return nil, fmt.Errorf("Error downloading photos: %v", err)
+	go func() {
+		err := a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionName)
+		if err != nil {
+			fmt.Printf("Error downloading photos: %v\n", err)
+		} else {
+			fmt.Println("All photos downloaded successfully.")
+		}
+	}()
+
+	return nil
+}
+
+func (a *App) StopTask() {
+	if a.cancelFunc != nil {
+		a.cancelFunc()
+		a.cancelFunc = nil
 	}
-	return photos, nil
 }
