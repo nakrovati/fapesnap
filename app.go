@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/nakrovati/fapesnap/internal/downloader"
 	"github.com/nakrovati/fapesnap/internal/scraper"
@@ -27,6 +28,7 @@ func NewApp() *App {
 // so we can call the runtime methods.
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.downloader = downloader.Downloader{}
 }
 
 func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
@@ -54,6 +56,9 @@ func (a *App) DownloadPhotos(collectionName string, providerName string) error {
 	ctx, cancel := context.WithCancel(a.ctx)
 	a.cancelFunc = cancel
 
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
 	a.scraper = scraper.NewScraper(providerName)
 
 	photoURLs, err := a.scraper.GetPhotoURLs(collectionName)
@@ -61,9 +66,9 @@ func (a *App) DownloadPhotos(collectionName string, providerName string) error {
 		return err
 	}
 
-	a.downloader = downloader.Downloader{}
-
 	go func() {
+		defer wg.Done()
+
 		err := a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionName)
 		if err != nil {
 			fmt.Printf("Error downloading photos: %v\n", err)
@@ -71,6 +76,8 @@ func (a *App) DownloadPhotos(collectionName string, providerName string) error {
 			fmt.Println("All photos downloaded successfully.")
 		}
 	}()
+
+	wg.Wait()
 
 	return nil
 }

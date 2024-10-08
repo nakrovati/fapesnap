@@ -10,11 +10,18 @@ import {
 } from "~/features/providers-selector";
 
 import { StopTask } from "$wails/go/main/App";
+import { Show } from "solid-js";
 
 function IndexPage() {
   const { provider, providers, setProvider } = useProviderSelector();
-  const { setCollection, photos, loading, previewPhotos, downloadPhotos } =
-    usePhotosDownloader();
+  const {
+    setCollection,
+    photos,
+    downloading,
+    loading,
+    previewPhotos,
+    downloadPhotos,
+  } = usePhotosDownloader();
 
   const collectionTextFieldPlaceholder = () =>
     provider().type === "id"
@@ -30,7 +37,7 @@ function IndexPage() {
   }
 
   function handleCancelTask() {
-    StopTask().then();
+    StopTask();
   }
 
   return (
@@ -40,7 +47,7 @@ function IndexPage() {
           <TextFieldInput
             placeholder={collectionTextFieldPlaceholder()}
             type="text"
-            autocomplete="off"
+            autocorrect="off"
             id="collection"
             onInput={(e) => setCollection(e.currentTarget.value)}
           />
@@ -58,9 +65,11 @@ function IndexPage() {
         <Button onClick={handlePreviewPhotos} variant="secondary">
           Preview
         </Button>
-        <Button onClick={handleCancelTask} variant="secondary">
-          Cancel
-        </Button>
+        <Show when={downloading()}>
+          <Button onClick={handleCancelTask} variant="destructive">
+            Cancel
+          </Button>
+        </Show>
       </div>
 
       <div class="overflow-y-auto mt-4">

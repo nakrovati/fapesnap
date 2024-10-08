@@ -7,15 +7,22 @@ export function usePhotosDownloader() {
   const [collection, setCollection] = createSignal("");
   const [photos, setPhotos] = createSignal<string[]>(photoStore.photos);
   const [loading, setLoading] = createSignal(false);
+  const [downloading, setDownloading] = createSignal(false);
 
   function downloadPhotos(provider: string) {
-    DownloadPhotos(collection(), provider).catch((error) => {
-      showToast({
-        title: "Error",
-        description: error,
-        variant: "error",
+    setDownloading(true);
+
+    DownloadPhotos(collection(), provider)
+      .catch((error) => {
+        showToast({
+          title: "Error",
+          description: error,
+          variant: "error",
+        });
+      })
+      .finally(() => {
+        setDownloading(false);
       });
-    });
   }
 
   function previewPhotos(provider: string) {
@@ -45,6 +52,7 @@ export function usePhotosDownloader() {
     collection,
     setCollection,
     photos,
+    downloading,
     loading,
     downloadPhotos,
     previewPhotos,
