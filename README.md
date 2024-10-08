@@ -1,6 +1,6 @@
-# Fapesnap - CMD nudes downloader
+# Fapesnap - Nudes (most often) downloader
 
-A handy CMD for downloading photos from various nudes sites.
+An app for downloading nudes from various sites.
 
 Provider list
 
@@ -10,11 +10,9 @@ Provider list
 
 ## Usage
 
-Open the directories with the program and write
+Open the app, enter a collection name such as username in Fapello or album ID for Bunkr, select the provider and choose to download the photos or view them first.
 
-```sh
-fapesnap fapodrop -u {username}
-```
+![Application interface](./assets/fapesnap-interface.png)
 
 ## Installation
 
