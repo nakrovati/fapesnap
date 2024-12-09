@@ -123,6 +123,10 @@
 	}
 }
 
+html {
+    overscroll-behavior: none;
+}
+
 ::-webkit-scrollbar {
 	width: 16px;
 }
