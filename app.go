@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/nakrovati/fapesnap/internal/downloader"
 	"github.com/nakrovati/fapesnap/internal/scraper"
@@ -32,6 +31,8 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
+	a.StopTask()
+
 	if collection == "" {
 		return nil, errors.New("collection cannot be empty")
 	}
@@ -46,18 +47,15 @@ func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	return photos, nil
 }
 
-func (a *App) DownloadPhotos(collectionName string, providerName string) error {
+func (a *App) DownloadPhotos(collectionName string, providerName string, maxParallelDownloads int) error {
+	a.StopTask()
+
 	if collectionName == "" {
 		return errors.New("collection cannot be empty")
 	}
 
-	a.StopTask()
-
 	ctx, cancel := context.WithCancel(a.ctx)
 	a.cancelFunc = cancel
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
 
 	a.scraper = scraper.NewScraper(providerName)
 
@@ -66,18 +64,12 @@ func (a *App) DownloadPhotos(collectionName string, providerName string) error {
 		return err
 	}
 
-	go func() {
-		defer wg.Done()
-
-		err := a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionName)
-		if err != nil {
-			fmt.Printf("Error downloading photos: %v\n", err)
-		} else {
-			fmt.Println("All photos downloaded successfully.")
-		}
-	}()
-
-	wg.Wait()
+	err = a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionName, maxParallelDownloads)
+	if err != nil {
+		fmt.Printf("Error downloading photos: %v\n", err)
+	} else {
+		fmt.Println("All photos downloaded successfully.")
+	}
 
 	return nil
 }

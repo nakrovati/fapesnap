@@ -17,12 +17,12 @@ linters:
     - usestdlibvars
     - paralleltest
     - ireturn # TODO: fix
-    - gomnd # Deprecated
     - exportloopref # Deprecated
-    - execinquery # Deprecated
+    - recvcheck
 
 linters-settings:
   varnamelen:
     ignore-decls:
       - c *colly.Collector
       - i int
+      - wg sync.WaitGroup

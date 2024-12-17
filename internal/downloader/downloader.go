@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -27,7 +28,22 @@ func (d *Downloader) DownloadPhotos(
 	urls []string,
 	providerName string,
 	collectionName string,
+	maxParallelDownloads int,
 ) error {
+	semaphore := make(chan struct{}, maxParallelDownloads)
+
+	var wg sync.WaitGroup
+
+	counterChan := make(chan int)
+
+	var downloadedPhotosCount int
+
+	go func() {
+		for count := range counterChan {
+			downloadedPhotosCount += count
+		}
+	}()
+
 	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
@@ -35,32 +51,35 @@ func (d *Downloader) DownloadPhotos(
 
 	runtime.EventsEmit(ctx, "download-start")
 
-	downloadedPhotosCount := 0
-
 	defer func() {
+		close(counterChan)
 		runtime.EventsEmit(ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
 	}()
 
-	for i := len(urls) - 1; i >= 0; i-- {
-		select {
-		case <-ctx.Done():
-			runtime.EventsEmit(ctx,
-				"download-canceled",
-				fmt.Sprintf("Canceled after downloading %d photos", downloadedPhotosCount),
-			)
+	for _, url := range urls {
+		wg.Add(1)
 
-			return ctx.Err()
-		default:
-			err = d.DownloadPhoto(ctx, urls[i], downloadDir)
-			if err != nil {
-				fmt.Printf("Failed to download photo from %s: %v\n", urls[i], err)
+		go func(url string) {
+			defer wg.Done()
 
-				continue
+			select {
+			case semaphore <- struct{}{}:
+				defer func() { <-semaphore }()
+			case <-ctx.Done():
+				fmt.Printf("Download cancelled for %s\n", url)
 			}
 
-			downloadedPhotosCount++
-		}
+			err := d.DownloadPhoto(ctx, url, downloadDir)
+			if err != nil {
+				fmt.Printf("Failed to download photo from %s: %v\n", url, err)
+			} else {
+				fmt.Printf("Downloaded %s\n", url)
+				counterChan <- 1
+			}
+		}(url)
 	}
+
+	wg.Wait()
 
 	return nil
 }
