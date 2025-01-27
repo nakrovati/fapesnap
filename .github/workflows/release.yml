@@ -17,7 +17,7 @@ jobs:
       matrix:
         build:
           [
-            { name: Fapesnap, platform: linux/amd64, os: ubuntu-latest },
+            { name: Fapesnap, platform: linux/amd64, os: ubuntu-22.04 },
             { name: Fapesnap, platform: windows/amd64, os: windows-latest },
             { name: Fapesnap, platform: darwin/universal, os: macos-latest },
           ]
@@ -32,4 +32,4 @@ jobs:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           go-version: 1.23
-          node-version: 20
+          node-version: 22
