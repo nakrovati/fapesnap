@@ -14,7 +14,7 @@ interface ProviderSelectorProps {
 	onChange: Setter<Provider>;
 }
 
-export function ProvidersSelector(props: ProviderSelectorProps) {
+export function ProviderSelector(props: ProviderSelectorProps) {
 	return (
 		<Select
 			value={props.provider}

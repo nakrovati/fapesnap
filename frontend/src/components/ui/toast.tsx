@@ -1,5 +1,5 @@
 import type { JSX, ValidComponent } from "solid-js";
-import { Match, splitProps, Switch } from "solid-js";
+import { Match, Switch, splitProps } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
