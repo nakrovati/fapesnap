@@ -5,7 +5,7 @@ interface PhotosPreviewProps {
 	loading: boolean;
 }
 
-export function PhotosPreview(props: PhotosPreviewProps) {
+export function PhotoGallery(props: PhotosPreviewProps) {
 	return (
 		<div class="grid gap-y-4 gap-x-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ">
 			<Show

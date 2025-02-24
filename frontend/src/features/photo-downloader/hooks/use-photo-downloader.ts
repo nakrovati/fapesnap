@@ -1,63 +1,80 @@
 import { DownloadPhotos, GetPhotos } from "$wails/go/main/App";
-import { createSignal } from "solid-js";
+import * as wails from "$wails/runtime";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import { showToast } from "~/components/ui/toast";
 import { photoStore, setPhotoStore } from "../stores/photo-store";
 
 export function usePhotosDownloader() {
-  const [collection, setCollection] = createSignal("");
-  const [photos, setPhotos] = createSignal<string[]>(photoStore.photos);
-  const [maxParallelDownloads, setMaxParallelDownloads] = createSignal(3);
-  const [loading, setLoading] = createSignal(false);
-  const [downloading, setDownloading] = createSignal(false);
+	const [collection, setCollection] = createSignal("");
+	const [photos, setPhotos] = createSignal<string[]>(photoStore.photos);
+	const [maxParallelDownloads, setMaxParallelDownloads] = createSignal(3);
+	const [loading, setLoading] = createSignal(false);
+	const [downloading, setDownloading] = createSignal(false);
 
-  function downloadPhotos(provider: string) {
-    setDownloading(true);
+	createEffect(() => {
+		wails.EventsOn("download-start", () => {
+			showToast({ title: "Download started" });
+		});
+		wails.EventsOn("download-complete", (description: string) => {
+			showToast({
+				title: "Download complete",
+				description,
+				variant: "success",
+			});
+		});
+	});
 
-    DownloadPhotos(collection(), provider, maxParallelDownloads())
-      .catch((error) => {
-        showToast({
-          title: "Error",
-          description: error,
-          variant: "error",
-        });
-      })
-      .finally(() => {
-        setDownloading(false);
-      });
-  }
+	onCleanup(() => {
+		wails.EventsOff("download-start");
+		wails.EventsOff("download-complete");
+	});
 
-  function previewPhotos(provider: string) {
-    setLoading(true);
+	function downloadPhotos(provider: string) {
+		setDownloading(true);
 
-    GetPhotos(collection(), provider)
-      .then((result) => {
-        setPhotos(result);
+		DownloadPhotos(collection(), provider, maxParallelDownloads())
+			.catch((error) => {
+				showToast({
+					title: "Error",
+					description: error,
+					variant: "error",
+				});
+			})
+			.finally(() => {
+				setDownloading(false);
+			});
+	}
 
-        setPhotoStore("photos", result);
+	function previewPhotos(provider: string) {
+		setLoading(true);
 
-        console.log(result);
-      })
-      .catch((error) => {
-        showToast({
-          title: "Error",
-          description: error,
-          variant: "error",
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
+		GetPhotos(collection(), provider)
+			.then((result) => {
+				setPhotos(result);
 
-  return {
-    collection,
-    setCollection,
-    photos,
-    maxParallelDownloads,
-    setMaxParallelDownloads,
-    downloading,
-    loading,
-    downloadPhotos,
-    previewPhotos,
-  };
+				setPhotoStore("photos", result);
+			})
+			.catch((error) => {
+				showToast({
+					title: "Error",
+					description: error,
+					variant: "error",
+				});
+			})
+			.finally(() => {
+				setLoading(false);
+			});
+	}
+
+	return {
+		collection,
+		setCollection,
+		photos,
+		maxParallelDownloads,
+		setMaxParallelDownloads,
+		downloading,
+		loading,
+		downloadPhotos,
+		previewPhotos,
+	};
 }

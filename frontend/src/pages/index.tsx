@@ -1,9 +1,6 @@
 import { Button } from "~/components/ui/button";
 import { TextField, TextFieldInput } from "~/components/ui/text-field";
-import {
-	PhotosPreview,
-	usePhotosDownloader,
-} from "~/features/photo-downloader";
+import { PhotoGallery, usePhotosDownloader } from "~/features/photo-downloader";
 import {
 	ProviderSelector,
 	useProviderSelector,
@@ -105,7 +102,7 @@ function IndexPage() {
 			</div>
 
 			<div class="overflow-y-auto mt-4">
-				<PhotosPreview photos={photos()} loading={loading()} />
+				<PhotoGallery photos={photos()} loading={loading()} />
 			</div>
 		</div>
 	);

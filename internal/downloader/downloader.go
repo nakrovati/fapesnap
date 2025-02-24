@@ -71,7 +71,7 @@ func (d *Downloader) DownloadPhotos(
 
 			err := d.DownloadPhoto(ctx, url, downloadDir)
 			if err != nil {
-				fmt.Printf("Failed to download photo from %s: %v\n", url, err)
+				fmt.Printf("Failed to download photo: %v\n", err)
 			} else {
 				fmt.Printf("Downloaded %s\n", url)
 				counterChan <- 1
