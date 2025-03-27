@@ -1,3 +1,5 @@
+version: "2"
+
 issues:
   exclude-dirs:
     - build/
@@ -5,20 +7,15 @@ issues:
     - frontend/
 
 linters:
-  enable-all: true
-  disable:
-    - dupl
+  default: all
+  disable: 
+    - depguard
+    - err113
     - exhaustruct
     - mnd
-    - depguard
     - wrapcheck
     - forbidigo
-    - err113
-    - usestdlibvars
-    - paralleltest
-    - ireturn # TODO: fix
-    - exportloopref # Deprecated
-    - recvcheck
+    - revive
 
 linters-settings:
   varnamelen:
