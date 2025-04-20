@@ -25,7 +25,7 @@ func (p *FapelloProvider) InitProvider() {
 	p.BaseURL = "https://fapello.com"
 }
 
-func (p FapelloProvider) FetchPhotoURLs(collection string) ([]string, error) {
+func (p *FapelloProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	if p.MinPhotoID > p.MaxPhotoID {
 		return []string{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
 	}
@@ -57,7 +57,7 @@ func (p FapelloProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	return photos, nil
 }
 
-func (p FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) {
+func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", err
@@ -77,7 +77,7 @@ func (p FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
-func (p FapelloProvider) GetPhotoURL(photoID string, username string) (string, error) {
+func (p *FapelloProvider) GetPhotoURL(photoID string, username string) (string, error) {
 	intPhotoID, err := strconv.Atoi(photoID)
 	if err != nil {
 		return "", err
@@ -99,7 +99,7 @@ func (p FapelloProvider) GetPhotoURL(photoID string, username string) (string, e
 	return url, nil
 }
 
-func (p FapelloProvider) GetRecentPhotoID(username string) (int, error) {
+func (p *FapelloProvider) GetRecentPhotoID(username string) (int, error) {
 	c := colly.NewCollector()
 
 	userSrc, err := url.JoinPath(p.BaseURL, username)
@@ -136,7 +136,7 @@ func (p FapelloProvider) GetRecentPhotoID(username string) (int, error) {
 	return recentPhotoID, nil
 }
 
-func (p FapelloProvider) buildURL(baseURL string, username string, recentID int) (string, error) {
+func (p *FapelloProvider) buildURL(baseURL string, username string, recentID int) (string, error) {
 	firstSymbol := string(username[0])
 	secondSymbol := string(username[1])
 	photoCountGroup := strconv.Itoa(utils.RoundUp(recentID))
@@ -149,7 +149,7 @@ func (p FapelloProvider) buildURL(baseURL string, username string, recentID int)
 	return photoURL, nil
 }
 
-func (p FapelloProvider) parsePhotoID(url string) (int, error) {
+func (p *FapelloProvider) parsePhotoID(url string) (int, error) {
 	re := regexp.MustCompile(`\/(\d+)/$`)
 
 	matches := re.FindStringSubmatch(url)

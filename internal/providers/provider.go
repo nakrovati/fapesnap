@@ -5,6 +5,7 @@ type Provider interface {
 	GetCollectionFromURL(url string) (string, error)
 }
 
+//nolint:ireturn
 func GetProvider(providerName string) Provider {
 	switch providerName {
 	case "fapello":

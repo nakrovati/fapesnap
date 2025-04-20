@@ -24,7 +24,7 @@ func (p *FapodropProvider) InitProvider() {
 	p.BaseURL = "https://fapodrop.com"
 }
 
-func (p FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
+func (p *FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	if p.MinPhotoID > p.MaxPhotoID {
 		return []string{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
 	}
@@ -56,7 +56,7 @@ func (p FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	return photos, nil
 }
 
-func (p FapodropProvider) GetCollectionFromURL(inputURL string) (string, error) {
+func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", err
@@ -76,7 +76,7 @@ func (p FapodropProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	return parts[len(parts)-1], nil
 }
 
-func (p FapodropProvider) GetPhotoURL(photoID string, username string) (string, error) {
+func (p *FapodropProvider) GetPhotoURL(photoID string, username string) (string, error) {
 	intPhotoID, err := strconv.Atoi(photoID)
 	if err != nil {
 		return "", err
@@ -98,7 +98,7 @@ func (p FapodropProvider) GetPhotoURL(photoID string, username string) (string, 
 	return url, nil
 }
 
-func (p FapodropProvider) GetRecentPhotoID(username string) (int, error) {
+func (p *FapodropProvider) GetRecentPhotoID(username string) (int, error) {
 	c := colly.NewCollector()
 
 	userSrc, err := url.JoinPath(p.BaseURL, username)
@@ -131,7 +131,7 @@ func (p FapodropProvider) GetRecentPhotoID(username string) (int, error) {
 	return recentPhotoID, nil
 }
 
-func (p FapodropProvider) buildURL(baseURL string, name string) (string, error) {
+func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
 
@@ -143,7 +143,7 @@ func (p FapodropProvider) buildURL(baseURL string, name string) (string, error) 
 	return photoURL, nil
 }
 
-func (p FapodropProvider) parsePhotoID(url string) (int, error) {
+func (p *FapodropProvider) parsePhotoID(url string) (int, error) {
 	re := regexp.MustCompile(`\/\d{4}$`)
 
 	match := re.FindString(url)

@@ -19,7 +19,7 @@ func (p *BunkrProvider) InitProvider() {
 	p.BaseURL = "https://bunkrrr.org"
 }
 
-func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
+func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	photosURLsFromHref, err := p.GetPhotoURLs(collection)
 	if err != nil {
 		return []string{}, err
@@ -41,7 +41,7 @@ func (p BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	return photos, nil
 }
 
-func (p BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
+func (p *BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
 	albumURL, err := url.JoinPath(p.BaseURL, "a", albumID)
 	if err != nil {
 		return []string{}, err
@@ -69,7 +69,7 @@ func (p BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
 	return photosURLs, nil
 }
 
-func (p BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
+func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", err
@@ -89,7 +89,7 @@ func (p BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
-func (p BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
+func (p *BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
 	c := colly.NewCollector()
 	c.OnHTML(".lightgallery img", func(e *colly.HTMLElement) {
 		if src := e.Attr("src"); src != "" {
@@ -109,7 +109,7 @@ func (p BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
 	return photoURL, nil
 }
 
-func (p BunkrProvider) GetPhotoID(src string) string {
+func (p *BunkrProvider) GetPhotoID(src string) string {
 	u, err := url.Parse(src)
 	if err != nil {
 		return ""

@@ -23,13 +23,6 @@ func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods.
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
-	a.downloader = downloader.Downloader{}
-}
-
 func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
 	a.StopTask()
 
@@ -79,4 +72,11 @@ func (a *App) StopTask() {
 		a.cancelFunc()
 		a.cancelFunc = nil
 	}
+}
+
+// startup is called when the app starts. The context is saved
+// so we can call the runtime methods.
+func (a *App) startup(ctx context.Context) {
+	a.ctx = ctx
+	a.downloader = downloader.Downloader{}
 }

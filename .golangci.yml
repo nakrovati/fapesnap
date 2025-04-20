@@ -16,10 +16,9 @@ linters:
     - wrapcheck
     - forbidigo
     - revive
-
-linters-settings:
-  varnamelen:
-    ignore-decls:
-      - c *colly.Collector
-      - i int
-      - wg sync.WaitGroup
+  settings:
+    varnamelen:
+      ignore-decls:
+        - c *colly.Collector
+        - i int
+        - wg sync.WaitGroup
