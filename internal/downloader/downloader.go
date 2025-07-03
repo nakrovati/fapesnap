@@ -75,6 +75,7 @@ func (d *Downloader) DownloadPhotos(
 				fmt.Printf("Failed to download photo: %v\n", err)
 			} else {
 				fmt.Printf("Downloaded %s\n", url)
+
 				counterChan <- 1
 			}
 		}(url)
@@ -97,7 +98,8 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 	}
 
 	defer func() {
-		if err = resp.Body.Close(); err != nil {
+		err = resp.Body.Close()
+		if err != nil {
 			fmt.Printf("Failed to close response body: %v\n", err)
 		}
 	}()
@@ -129,7 +131,8 @@ func (d *Downloader) SavePhoto(resp *http.Response, src string, dir string) erro
 	}
 
 	defer func() {
-		if err = file.Close(); err != nil {
+		err = file.Close()
+		if err != nil {
 			fmt.Printf("Failed to close file: %v\n", err)
 		}
 	}()

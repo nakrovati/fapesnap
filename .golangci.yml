@@ -1,14 +1,8 @@
 version: "2"
 
-issues:
-  exclude-dirs:
-    - build/
-    - assets/
-    - frontend/
-
 linters:
   default: all
-  disable: 
+  disable:
     - depguard
     - err113
     - exhaustruct
@@ -16,6 +10,7 @@ linters:
     - wrapcheck
     - forbidigo
     - revive
+    - wsl
   settings:
     varnamelen:
       ignore-decls:
