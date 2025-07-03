@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"format": "biome format --write",
-		"check": "biome check --write",
+		"check": "biome check",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -20,7 +20,7 @@
 		"tailwindcss-animate": "^1.0.7"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
+		"@biomejs/biome": "^2.0.6",
 		"@types/node": "^22.14.0",
 		"autoprefixer": "^10.4.21",
 		"postcss": "^8.5.3",
