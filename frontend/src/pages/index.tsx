@@ -1,13 +1,6 @@
-import { Button } from "~/components/ui/button";
-import { TextField, TextFieldInput } from "~/components/ui/text-field";
-import { PhotoGallery, usePhotosDownloader } from "~/features/photo-downloader";
-import {
-	ProviderSelector,
-	useProviderSelector,
-} from "~/features/provider-selector";
-
 import { StopTask } from "$wails/go/main/App";
 import { Show } from "solid-js";
+import { Button } from "~/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -15,6 +8,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "~/components/ui/select";
+import { TextField, TextFieldInput } from "~/components/ui/text-field";
+import { PhotoGallery, usePhotosDownloader } from "~/features/photo-downloader";
+import {
+	ProviderSelector,
+	useProviderSelector,
+} from "~/features/provider-selector";
 
 function IndexPage() {
 	const { provider, providers, setProvider } = useProviderSelector();

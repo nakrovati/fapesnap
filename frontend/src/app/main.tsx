@@ -20,22 +20,20 @@ function App() {
 	const storageManager = createLocalStorageManager("theme");
 
 	return (
-		<>
-			<Router
-				root={(props) => (
-					<>
-						<ColorModeScript storageType={storageManager.type} />
-						<ColorModeProvider storageManager={storageManager}>
-							<DefaultLayout>{props.children}</DefaultLayout>
-						</ColorModeProvider>
-						<Toaster />
-					</>
-				)}
-			>
-				<Route path="/" component={IndexPage} />
-				<Route path="/settings" component={SettingsPage} />
-			</Router>
-		</>
+		<Router
+			root={(props) => (
+				<>
+					<ColorModeScript storageType={storageManager.type} />
+					<ColorModeProvider storageManager={storageManager}>
+						<DefaultLayout>{props.children}</DefaultLayout>
+					</ColorModeProvider>
+					<Toaster />
+				</>
+			)}
+		>
+			<Route path="/" component={IndexPage} />
+			<Route path="/settings" component={SettingsPage} />
+		</Router>
 	);
 }
 
