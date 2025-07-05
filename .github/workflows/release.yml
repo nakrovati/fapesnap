@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        uses: dAppServer/wails-build-action@v2.2
+        uses: dAppServer/wails-build-action@main
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
