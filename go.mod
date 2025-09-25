@@ -1,8 +1,8 @@
 module github.com/nakrovati/fapesnap
 
-go 1.24
+go 1.25
 
-toolchain go1.24.2
+toolchain go1.25.1
 
 require (
 	github.com/gocolly/colly/v2 v2.2.0
