@@ -13,6 +13,17 @@
 			? "Enter the album ID or URL"
 			: "Enter the user's name or profile URL",
 	);
+
+	const LAST_SELECTED_PROVIDER_KEY = "last-selected-provider";
+
+	$effect(() => {
+		photoStore.provider = localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.provider);
+	});
+
+	function handleProviderChange() {
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.provider);
+	}
 </script>
 
 <div class="mt-2">
@@ -45,7 +56,11 @@
 			</Tooltip.Root>
 		</Tooltip.Provider>
 
-		<Select.Root bind:value={photoStore.provider} type="single">
+		<Select.Root
+			bind:value={photoStore.provider}
+			onValueChange={handleProviderChange}
+			type="single"
+		>
 			<Select.Trigger class="w-[180px]">
 				{selectedProvider.label}
 			</Select.Trigger>
