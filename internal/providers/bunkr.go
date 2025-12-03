@@ -2,6 +2,7 @@ package providers
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"slices"
 	"strings"
@@ -16,24 +17,28 @@ type BunkrProvider struct {
 
 func (p *BunkrProvider) InitProvider() {
 	p.ProviderName = "bunkr"
-	p.BaseURL = "https://bunkrrr.org"
+	p.BaseURL = "https://bunkr.cr"
 }
 
-func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
-	photosURLsFromHref, err := p.GetPhotoURLs(collection)
+func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]Photo, error) {
+	items, err := p.GetPhotos(collection)
 	if err != nil {
-		return []string{}, err
+		return []Photo{}, err
 	}
 
-	photos := make([]string, 0, len(photosURLsFromHref))
+	photos := make([]Photo, 0, len(items))
 
-	for _, photoURLFromHref := range photosURLsFromHref {
-		photoURL, err := p.GetPhotoURL(photoURLFromHref)
+	for _, item := range items {
+		photoURL, err := p.GetPhotoURL(item.Href)
 		if err != nil {
-			return []string{}, err
+			return []Photo{}, err
 		}
 
-		photos = append(photos, photoURL)
+		photo := Photo{
+			URL:          photoURL,
+			ThumbnailURL: item.ThumbnailURL,
+		}
+		photos = append(photos, photo)
 	}
 
 	slices.Reverse(photos)
@@ -41,32 +46,50 @@ func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]string, error) {
 	return photos, nil
 }
 
-func (p *BunkrProvider) GetPhotoURLs(albumID string) ([]string, error) {
+type BunkrItem struct {
+	Href         string
+	ThumbnailURL string
+}
+
+func (p *BunkrProvider) GetPhotos(albumID string) ([]BunkrItem, error) {
 	albumURL, err := url.JoinPath(p.BaseURL, "a", albumID)
 	if err != nil {
-		return []string{}, err
+		return []BunkrItem{}, err
 	}
 
-	photosURLs := make([]string, 0)
+	items := make([]BunkrItem, 0)
 
 	c := colly.NewCollector()
 
-	c.OnHTML("a.grid-images_box-link", func(e *colly.HTMLElement) {
-		href := e.Attr("href")
+	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
+		photoPageURL := e.ChildAttr("a[aria-label='download']", "href")
+		thumbnailURL := e.ChildAttr("img.grid-images_box-img", "src")
 
-		photosURLs = append(photosURLs, href)
+		href, err := url.JoinPath(p.BaseURL, photoPageURL)
+		if err != nil {
+			fmt.Println(err)
+
+			return
+		}
+
+		item := BunkrItem{
+			Href:         href,
+			ThumbnailURL: thumbnailURL,
+		}
+
+		items = append(items, item)
 	})
 
 	err = c.Visit(albumURL)
 	if err != nil {
-		return []string{}, err
+		return []BunkrItem{}, err
 	}
 
-	if len(photosURLs) == 0 {
-		return []string{}, errors.New("album not found")
+	if len(items) == 0 {
+		return []BunkrItem{}, errors.New("album not found")
 	}
 
-	return photosURLs, nil
+	return items, nil
 }
 
 func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
@@ -91,19 +114,13 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 
 func (p *BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
 	c := colly.NewCollector()
-	c.OnHTML(".lightgallery img", func(e *colly.HTMLElement) {
-		if src := e.Attr("src"); src != "" {
-			photoURL = src
-		}
+	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
+		photoURL = e.ChildAttr("img.w-full.h-full.absolute", "src")
 	})
 
 	err := c.Visit(photoURL)
 	if err != nil {
 		return "", err
-	}
-
-	if photoURL == "" {
-		return "", errors.New("photo not found")
 	}
 
 	return photoURL, nil
@@ -116,7 +133,6 @@ func (p *BunkrProvider) GetPhotoID(src string) string {
 	}
 
 	pathParts := strings.Split(u.Path, "/")
-
 	id := pathParts[len(pathParts)-1]
 
 	return id

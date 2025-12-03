@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { photoStore } from "$lib/stores/photo-store.svelte";
+	import { cn } from "$lib/utils";
 	import type { ClassValue } from "svelte/elements";
 
 	const { class: klass }: { class?: ClassValue } = $props();
 </script>
 
 <div
-	class={[
+	class={cn(
 		"grid grid-cols-2 gap-x-2 gap-y-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6",
 		klass,
-	]}
+	)}
 >
 	{#if photoStore.loading}
 		<div class="aspect-[3/4] animate-pulse rounded bg-gray-500"></div>
@@ -21,7 +22,12 @@
 	{:else}
 		{#each photoStore.photos as photo}
 			<div>
-				<img src={photo} alt="" class="min-h-48 rounded object-contain object-top" loading="lazy" />
+				<img
+					src={photo.thumbnailUrl ?? photo.url}
+					alt=""
+					class="min-h-48 rounded object-contain object-top"
+					loading="lazy"
+				/>
 			</div>
 		{/each}
 	{/if}

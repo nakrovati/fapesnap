@@ -25,31 +25,31 @@ func (p *FapelloProvider) InitProvider() {
 	p.BaseURL = "https://fapello.com"
 }
 
-func (p *FapelloProvider) FetchPhotoURLs(collection string) ([]string, error) {
+func (p *FapelloProvider) FetchPhotoURLs(collection string) ([]Photo, error) {
 	if p.MinPhotoID > p.MaxPhotoID {
-		return []string{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
+		return []Photo{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
 	}
 
 	recentPhotoID, err := p.GetRecentPhotoID(collection)
 	if err != nil {
-		return []string{}, err
+		return []Photo{}, err
 	}
 
 	if p.MaxPhotoID > recentPhotoID {
 		p.MaxPhotoID = recentPhotoID
 	}
 
-	photos := make([]string, 0, p.MaxPhotoID-p.MinPhotoID+1)
+	photos := make([]Photo, 0, p.MaxPhotoID-p.MinPhotoID+1)
 
 	for i := p.MinPhotoID; i <= p.MaxPhotoID; i++ {
 		photoID := strconv.Itoa(i)
 
-		photoURL, err := p.GetPhotoURL(photoID, collection)
+		photo, err := p.GetPhoto(photoID, collection)
 		if err != nil {
-			return []string{}, err
+			return []Photo{}, err
 		}
 
-		photos = append(photos, photoURL)
+		photos = append(photos, photo)
 	}
 
 	slices.Reverse(photos)
@@ -77,26 +77,37 @@ func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapelloProvider) GetPhotoURL(photoID string, username string) (string, error) {
+func (p *FapelloProvider) GetPhoto(photoID string, username string) (Photo, error) {
 	intPhotoID, err := strconv.Atoi(photoID)
 	if err != nil {
-		return "", err
-	}
-
-	urlWithoutID, err := p.buildURL(p.BaseURL, username, intPhotoID)
-	if err != nil {
-		return "", err
+		return Photo{}, err
 	}
 
 	paddedID := fmt.Sprintf("%04d", intPhotoID)
 	photoName := fmt.Sprintf("%s_%v.jpg", username, paddedID)
+	photoThumbnailName := fmt.Sprintf("%s_%v_300px.jpg", username, paddedID)
 
-	url, err := url.JoinPath(urlWithoutID, photoName)
+	urlWithoutID, err := p.buildURL(p.BaseURL, username, intPhotoID)
 	if err != nil {
-		return "", err
+		return Photo{}, err
 	}
 
-	return url, nil
+	photoURL, err := url.JoinPath(urlWithoutID, photoName)
+	if err != nil {
+		return Photo{}, err
+	}
+
+	thumbnailURL, err := url.JoinPath(urlWithoutID, photoThumbnailName)
+	if err != nil {
+		return Photo{}, err
+	}
+
+	photo := Photo{
+		URL:          photoURL,
+		ThumbnailURL: thumbnailURL,
+	}
+
+	return photo, nil
 }
 
 func (p *FapelloProvider) GetRecentPhotoID(username string) (int, error) {

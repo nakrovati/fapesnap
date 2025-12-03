@@ -21,12 +21,12 @@ func NewScraper(providerName string) *Scraper {
 	}
 }
 
-func (s *Scraper) GetPhotoURLs(collection string) ([]string, error) {
+func (s *Scraper) GetPhotoURLs(collection string) ([]providers.Photo, error) {
 	u, err := url.Parse(collection)
 	if err == nil && u.Scheme != "" && u.Host != "" {
 		collectionString, err := s.provider.GetCollectionFromURL(collection)
 		if err != nil {
-			return []string{}, err
+			return []providers.Photo{}, err
 		}
 
 		collection = collectionString

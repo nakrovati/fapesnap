@@ -12,10 +12,9 @@ import (
 	"sync"
 
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
+	"github.com/nakrovati/fapesnap/internal/providers"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
-
-const MaxPhotoID = 100000
 
 var (
 	ErrPhotoNotFound = errors.New("photo not found")
@@ -26,7 +25,7 @@ type Downloader struct{}
 
 func (d *Downloader) DownloadPhotos(
 	ctx context.Context,
-	urls []string,
+	photos []providers.Photo,
 	providerName string,
 	collectionName string,
 	maxParallelDownloads int,
@@ -57,28 +56,28 @@ func (d *Downloader) DownloadPhotos(
 		runtime.EventsEmit(ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
 	}()
 
-	for _, url := range urls {
+	for _, photo := range photos {
 		wg.Add(1)
 
-		go func(url string) {
+		go func(photo providers.Photo) {
 			defer wg.Done()
 
 			select {
 			case semaphore <- struct{}{}:
 				defer func() { <-semaphore }()
 			case <-ctx.Done():
-				fmt.Printf("Download cancelled for %s\n", url)
+				fmt.Printf("Download cancelled for %s\n", photo.URL)
 			}
 
-			err := d.DownloadPhoto(ctx, url, downloadDir)
+			err := d.DownloadPhoto(ctx, photo.URL, downloadDir)
 			if err != nil {
 				fmt.Printf("Failed to download photo: %v\n", err)
 			} else {
-				fmt.Printf("Downloaded %s\n", url)
+				fmt.Printf("Downloaded %s\n", photo.URL)
 
 				counterChan <- 1
 			}
-		}(url)
+		}(photo)
 	}
 
 	wg.Wait()
@@ -104,8 +103,12 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("photo %s not found %w", src, ErrPhotoNotFound)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download photo: %s", resp.Status)
 	}
 
 	err = d.SavePhoto(resp, src, dir)

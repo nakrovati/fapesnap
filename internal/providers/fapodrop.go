@@ -24,31 +24,31 @@ func (p *FapodropProvider) InitProvider() {
 	p.BaseURL = "https://fapodrop.com"
 }
 
-func (p *FapodropProvider) FetchPhotoURLs(collection string) ([]string, error) {
+func (p *FapodropProvider) FetchPhotoURLs(collection string) ([]Photo, error) {
 	if p.MinPhotoID > p.MaxPhotoID {
-		return []string{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
+		return []Photo{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
 	}
 
 	recentPhotoID, err := p.GetRecentPhotoID(collection)
 	if err != nil {
-		return []string{}, err
+		return []Photo{}, err
 	}
 
 	if p.MaxPhotoID > recentPhotoID {
 		p.MaxPhotoID = recentPhotoID
 	}
 
-	photos := make([]string, 0, p.MaxPhotoID-p.MinPhotoID+1)
+	photos := make([]Photo, 0, p.MaxPhotoID-p.MinPhotoID+1)
 
 	for i := p.MinPhotoID; i <= p.MaxPhotoID; i++ {
 		photoID := strconv.Itoa(i)
 
-		photoURL, err := p.GetPhotoURL(photoID, collection)
+		photo, err := p.GetPhoto(photoID, collection)
 		if err != nil {
-			return []string{}, err
+			return []Photo{}, err
 		}
 
-		photos = append(photos, photoURL)
+		photos = append(photos, photo)
 	}
 
 	slices.Reverse(photos)
@@ -76,32 +76,48 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapodropProvider) GetPhotoURL(photoID string, username string) (string, error) {
+func (p *FapodropProvider) GetPhoto(photoID string, username string) (Photo, error) {
 	intPhotoID, err := strconv.Atoi(photoID)
 	if err != nil {
-		return "", err
-	}
-
-	urlWithoutID, err := p.buildURL(p.BaseURL, username)
-	if err != nil {
-		return "", err
+		return Photo{}, err
 	}
 
 	paddedID := fmt.Sprintf("%04d", intPhotoID)
 	photoName := fmt.Sprintf("%s_%s.jpeg", username, paddedID)
+	photoThumbnailName := fmt.Sprintf("%s_%s_thumbnail.jpeg", username, paddedID)
 
-	url, err := url.JoinPath(urlWithoutID, photoName)
+	urlWithoutID, err := p.buildURL(p.BaseURL, username)
 	if err != nil {
-		return "", err
+		return Photo{}, err
 	}
 
-	return url, nil
+	thumbnailURLWithoutID, err := p.buildThumbnailURL(p.BaseURL, username)
+	if err != nil {
+		return Photo{}, err
+	}
+
+	photoURL, err := url.JoinPath(urlWithoutID, photoName)
+	if err != nil {
+		return Photo{}, err
+	}
+
+	thumbnailURL, err := url.JoinPath(thumbnailURLWithoutID, photoThumbnailName)
+	if err != nil {
+		return Photo{}, err
+	}
+
+	photo := Photo{
+		URL:          photoURL,
+		ThumbnailURL: thumbnailURL,
+	}
+
+	return photo, nil
 }
 
 func (p *FapodropProvider) GetRecentPhotoID(username string) (int, error) {
 	c := colly.NewCollector()
 
-	userSrc, err := url.JoinPath(p.BaseURL, username)
+	userPageURL, err := url.JoinPath(p.BaseURL, username)
 	if err != nil {
 		return 0, err
 	}
@@ -109,11 +125,11 @@ func (p *FapodropProvider) GetRecentPhotoID(username string) (int, error) {
 	isFound := false
 	recentPhotoID := 0
 
-	c.OnHTML(fmt.Sprintf(".row .one-pack a[href^='/%s']", username), func(e *colly.HTMLElement) {
+	c.OnHTML(fmt.Sprintf(".one-pack a[href^='/%s']", username), func(e *colly.HTMLElement) {
 		if !isFound {
-			src := e.Attr("href")
+			href := e.Attr("href")
 
-			photoID, err := p.parsePhotoID(src)
+			photoID, err := p.parsePhotoID(href)
 			if err != nil {
 				return
 			}
@@ -123,9 +139,9 @@ func (p *FapodropProvider) GetRecentPhotoID(username string) (int, error) {
 		}
 	})
 
-	err = c.Visit(userSrc)
+	err = c.Visit(userPageURL)
 	if err != nil {
-		return 0, fmt.Errorf("failed to visit %s: %w", userSrc, err)
+		return 0, fmt.Errorf("failed to visit %s: %w", userPageURL, err)
 	}
 
 	return recentPhotoID, nil
@@ -136,6 +152,18 @@ func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error)
 	secondSymbol := name[1]
 
 	photoURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
+	if err != nil {
+		return "", err
+	}
+
+	return photoURL, nil
+}
+
+func (p *FapodropProvider) buildThumbnailURL(baseURL string, name string) (string, error) {
+	firstSymbol := name[0]
+	secondSymbol := name[1]
+
+	photoURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "thumbnails")
 	if err != nil {
 		return "", err
 	}

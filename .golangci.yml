@@ -11,9 +11,11 @@ linters:
     - forbidigo
     - revive
     - wsl
+    - funlen
   settings:
     varnamelen:
       ignore-decls:
         - c *colly.Collector
         - i int
         - wg sync.WaitGroup
+        - e *colly.HTMLElement

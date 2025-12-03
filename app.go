@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nakrovati/fapesnap/internal/downloader"
+	"github.com/nakrovati/fapesnap/internal/providers"
 	"github.com/nakrovati/fapesnap/internal/scraper"
 )
 
@@ -23,7 +24,7 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (a *App) GetPhotos(collection string, provider string) ([]string, error) {
+func (a *App) GetPhotos(collection string, provider string) ([]providers.Photo, error) {
 	a.StopTask()
 
 	if collection == "" {

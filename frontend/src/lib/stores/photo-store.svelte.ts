@@ -1,11 +1,12 @@
 import { toast } from "svelte-sonner";
 import { DownloadPhotos, GetPhotos } from "$lib/wailsjs/go/main/App";
 import { providers } from "$lib/shared/constants";
+import { providers as Providers } from "$lib/wailsjs/go/models";
 
 interface PhotoStore {
 	provider: string;
 	collection: string;
-	photos: string[];
+	photos: Providers.Photo[];
 	maxParallelDownloads: string;
 	loading: boolean;
 	downloading: boolean;
