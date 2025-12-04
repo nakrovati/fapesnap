@@ -79,7 +79,7 @@
 			{#if photoStore.downloading}
 				<Button onclick={StopTask} variant="destructive">Cancel</Button>
 			{:else}
-				<Button onclick={downloadPhotos}>Download</Button>
+				<Button onclick={downloadPhotos}>Download all</Button>
 			{/if}
 		{/if}
 		{#if !photoStore.downloading}

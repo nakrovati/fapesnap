@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nakrovati/fapesnap/internal/downloader"
+	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
 	"github.com/nakrovati/fapesnap/internal/scraper"
 )
@@ -63,6 +64,22 @@ func (a *App) DownloadPhotos(collectionName string, providerName string, maxPara
 		fmt.Printf("Error downloading photos: %v\n", err)
 	} else {
 		fmt.Println("All photos downloaded successfully.")
+	}
+
+	return nil
+}
+
+func (a *App) DownloadPhoto(src string, collectionName string, providerName string) error {
+	a.StopTask()
+
+	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
+	if err != nil {
+		return fmt.Errorf("failed to get download directory: %w", err)
+	}
+
+	err = a.downloader.DownloadPhoto(a.ctx, src, downloadDir)
+	if err != nil {
+		return fmt.Errorf("Error downloading photo: %v\n", err)
 	}
 
 	return nil

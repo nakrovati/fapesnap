@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { photoStore } from "$lib/stores/photo-store.svelte";
+	import { downloadPhoto, photoStore } from "$lib/stores/photo-store.svelte";
 	import { cn } from "$lib/utils";
 	import type { ClassValue } from "svelte/elements";
+	import Button from "./ui/button/button.svelte";
+	import { Download } from "@lucide/svelte";
 
 	const { class: klass }: { class?: ClassValue } = $props();
 </script>
@@ -21,7 +23,15 @@
 		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 2xl:block"></div>
 	{:else}
 		{#each photoStore.photos as photo}
-			<div>
+			<div class="relative">
+				<Button
+					aria-label="Download photo"
+					size="icon"
+					class="absolute right-1 top-1 size-8"
+					onclick={() => downloadPhoto(photo.url)}
+				>
+					<Download />
+				</Button>
 				<img
 					src={photo.thumbnailUrl ?? photo.url}
 					alt=""

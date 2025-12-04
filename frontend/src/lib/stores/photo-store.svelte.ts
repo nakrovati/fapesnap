@@ -1,12 +1,14 @@
 import { toast } from "svelte-sonner";
-import { DownloadPhotos, GetPhotos } from "$lib/wailsjs/go/main/App";
+import { DownloadPhoto, DownloadPhotos, GetPhotos } from "$lib/wailsjs/go/main/App";
 import { providers } from "$lib/shared/constants";
 import { providers as Providers } from "$lib/wailsjs/go/models";
+
+type Photo = Providers.Photo & { provider: string; collection: string };
 
 interface PhotoStore {
 	provider: string;
 	collection: string;
-	photos: Providers.Photo[];
+	photos: Photo[];
 	maxParallelDownloads: string;
 	loading: boolean;
 	downloading: boolean;
@@ -22,12 +24,17 @@ export const photoStore = $state<PhotoStore>({
 });
 
 export function previewPhotos() {
+	const { provider, collection } = photoStore;
+
 	photoStore.loading = true;
 
-	GetPhotos(photoStore.collection, photoStore.provider)
+	GetPhotos(collection, provider)
 		.then((result) => {
-			photoStore.photos = result;
-			console.log("photos", photoStore.photos);
+			photoStore.photos = result.map((photo) => ({
+				...photo,
+				provider,
+				collection,
+			}));
 		})
 		.catch((error) => {
 			toast.error("Error", {
@@ -40,13 +47,11 @@ export function previewPhotos() {
 }
 
 export function downloadPhotos() {
+	const { provider, collection, maxParallelDownloads } = photoStore;
+
 	photoStore.downloading = true;
 
-	DownloadPhotos(
-		photoStore.collection,
-		photoStore.provider,
-		Number(photoStore.maxParallelDownloads),
-	)
+	DownloadPhotos(collection, provider, Number(maxParallelDownloads))
 		.catch((error) => {
 			toast.error("Error", {
 				description: error,
@@ -54,5 +59,19 @@ export function downloadPhotos() {
 		})
 		.finally(() => {
 			photoStore.downloading = false;
+		});
+}
+
+export function downloadPhoto(src: string) {
+	const { provider, collection } = photoStore;
+
+	DownloadPhoto(src, collection, provider)
+		.then(() => {
+			toast.success("Downloaded");
+		})
+		.catch((error) => {
+			toast.error("Error", {
+				description: error,
+			});
 		});
 }
