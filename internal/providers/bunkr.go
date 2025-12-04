@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"slices"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -31,17 +30,22 @@ func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]Photo, error) {
 	for _, item := range items {
 		photoURL, err := p.GetPhotoURL(item.Href)
 		if err != nil {
-			return []Photo{}, err
+			fmt.Printf("Failed to get photo: %v\n", err)
+
+			continue
 		}
 
 		photo := Photo{
 			URL:          photoURL,
 			ThumbnailURL: item.ThumbnailURL,
 		}
+
 		photos = append(photos, photo)
 	}
 
-	slices.Reverse(photos)
+	if len(photos) == 0 {
+		return []Photo{}, errors.New("no photos found")
+	}
 
 	return photos, nil
 }
@@ -114,6 +118,7 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 
 func (p *BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
 	c := colly.NewCollector()
+
 	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
 		photoURL = e.ChildAttr("img.w-full.h-full.absolute", "src")
 	})
