@@ -14,7 +14,7 @@ import (
 // App struct.
 type App struct {
 	scraper    *scraper.Scraper
-	downloader downloader.Downloader
+	downloader *downloader.Downloader
 	//nolint:containedctx
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -79,7 +79,7 @@ func (a *App) DownloadPhoto(src string, collectionName string, providerName stri
 
 	err = a.downloader.DownloadPhoto(a.ctx, src, downloadDir)
 	if err != nil {
-		return fmt.Errorf("Error downloading photo: %v\n", err)
+		return fmt.Errorf("error downloading photo: %w", err)
 	}
 
 	return nil
@@ -96,5 +96,5 @@ func (a *App) StopTask() {
 // so we can call the runtime methods.
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.downloader = downloader.Downloader{}
+	a.downloader = downloader.NewDownloader()
 }

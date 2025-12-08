@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
@@ -21,7 +22,17 @@ var (
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
-type Downloader struct{}
+type Downloader struct {
+	httpClient *http.Client
+}
+
+func NewDownloader() *Downloader {
+	return &Downloader{
+		httpClient: &http.Client{
+			Timeout: 60 * time.Second,
+		},
+	}
+}
 
 func (d *Downloader) DownloadPhotos(
 	ctx context.Context,
@@ -30,11 +41,17 @@ func (d *Downloader) DownloadPhotos(
 	collectionName string,
 	maxParallelDownloads int,
 ) error {
-	semaphore := make(chan struct{}, maxParallelDownloads)
+	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
+	if err != nil {
+		return fmt.Errorf("failed to get download directory: %w", err)
+	}
+
+	runtime.EventsEmit(ctx, "download-start")
+
+	jobs := make(chan providers.Photo)
+	counterChan := make(chan int)
 
 	var wg sync.WaitGroup
-
-	counterChan := make(chan int)
 
 	var downloadedPhotosCount int
 
@@ -44,43 +61,48 @@ func (d *Downloader) DownloadPhotos(
 		}
 	}()
 
-	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
-	if err != nil {
-		return fmt.Errorf("failed to get download directory: %w", err)
-	}
+	for range maxParallelDownloads {
+		wg.Go(func() {
+			for photo := range jobs {
+				if ctx.Err() != nil {
+					fmt.Printf("Download cancelled for %s\n", photo.URL)
 
-	runtime.EventsEmit(ctx, "download-start")
+					continue
+				}
 
-	defer func() {
-		close(counterChan)
-		runtime.EventsEmit(ctx, "download-complete", fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount))
-	}()
+				err := d.DownloadPhoto(ctx, photo.URL, downloadDir)
+				if err != nil {
+					fmt.Printf("Failed to download photo: %v\n", err)
 
-	for _, photo := range photos {
-		wg.Add(1)
+					continue
+				}
 
-		go func(photo providers.Photo) {
-			defer wg.Done()
-
-			select {
-			case semaphore <- struct{}{}:
-				defer func() { <-semaphore }()
-			case <-ctx.Done():
-				fmt.Printf("Download cancelled for %s\n", photo.URL)
-			}
-
-			err := d.DownloadPhoto(ctx, photo.URL, downloadDir)
-			if err != nil {
-				fmt.Printf("Failed to download photo: %v\n", err)
-			} else {
 				fmt.Printf("Downloaded %s\n", photo.URL)
 
 				counterChan <- 1
 			}
-		}(photo)
+		})
 	}
 
+	for _, photo := range photos {
+		if ctx.Err() != nil {
+			break
+		}
+
+		jobs <- photo
+	}
+
+	close(jobs)
 	wg.Wait()
+
+	close(counterChan)
+	runtime.EventsEmit(ctx, "download-complete",
+		fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount),
+	)
+
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 
 	return nil
 }
@@ -91,7 +113,7 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := d.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download photo: %w", err)
 	}
@@ -120,7 +142,7 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 }
 
 func (d *Downloader) SavePhoto(resp *http.Response, src string, dir string) error {
-	fileName := filepath.Base(src)
+	fileName := filepath.Base(strings.Split(src, "?")[0])
 
 	filePath := filepath.Join(dir, fileName)
 
