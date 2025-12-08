@@ -6,6 +6,7 @@
 	import { photoStore, previewPhotos, downloadPhotos } from "$lib/stores/photo-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Tooltip from "$lib/components/ui/tooltip";
+	import * as ButtonGroup from "$lib/components/ui/button-group";
 
 	let selectedProvider = $derived(providers.find((p) => p.value === photoStore.provider)!);
 	let collectionTextFieldPlaceholder = $derived(
@@ -35,43 +36,44 @@
 			autocorrect="off"
 			bind:value={photoStore.collection}
 		/>
+		<ButtonGroup.Root>
+			<Select.Root
+				bind:value={photoStore.provider}
+				onValueChange={handleProviderChange}
+				type="single"
+			>
+				<Select.Trigger class="w-[180px]">
+					{selectedProvider.label}
+				</Select.Trigger>
+				<Select.Content>
+					{#each providers as provider (provider.value)}
+						<Select.Item value={provider.value}>
+							{provider.label}
+						</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
 
-		<Tooltip.Provider>
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					<Select.Root bind:value={photoStore.maxParallelDownloads} type="single">
-						<Select.Trigger>
-							{photoStore.maxParallelDownloads}
-						</Select.Trigger>
-						<Select.Content>
-							{#each [1, 2, 3, 4, 5] as n}
-								<Select.Item value={n.toString()}>{n}</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Tooltip.Trigger>
-				<Tooltip.Content>
-					<p>Number of photos uploaded simultaneously</p>
-				</Tooltip.Content>
-			</Tooltip.Root>
-		</Tooltip.Provider>
-
-		<Select.Root
-			bind:value={photoStore.provider}
-			onValueChange={handleProviderChange}
-			type="single"
-		>
-			<Select.Trigger class="w-[180px]">
-				{selectedProvider.label}
-			</Select.Trigger>
-			<Select.Content>
-				{#each providers as provider (provider.value)}
-					<Select.Item value={provider.value}>
-						{provider.label}
-					</Select.Item>
-				{/each}
-			</Select.Content>
-		</Select.Root>
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						<Select.Root bind:value={photoStore.maxParallelDownloads} type="single">
+							<Select.Trigger class="rounded-l-none">
+								{photoStore.maxParallelDownloads}
+							</Select.Trigger>
+							<Select.Content>
+								{#each [1, 2, 3, 4, 5] as n}
+									<Select.Item value={n.toString()}>{n}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</Tooltip.Trigger>
+					<Tooltip.Content>
+						<p>Number of photos uploaded simultaneously.</p>
+					</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
+		</ButtonGroup.Root>
 	</div>
 
 	<div class="mt-4 flex justify-center gap-2">
