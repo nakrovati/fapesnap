@@ -14,20 +14,11 @@ type Photo struct {
 func GetProvider(providerName string) Provider {
 	switch providerName {
 	case "fapello":
-		fapelloProvider := &FapelloProvider{MinPhotoID: 1, MaxPhotoID: 100000}
-		fapelloProvider.InitProvider()
-
-		return fapelloProvider
+		return NewFapelloProvider()
 	case "fapodrop":
-		fapodropProvider := &FapodropProvider{MinPhotoID: 1, MaxPhotoID: 100000}
-		fapodropProvider.InitProvider()
-
-		return fapodropProvider
+		return NewFapodropProvider()
 	case "bunkr":
-		bunkrProvider := &BunkrProvider{}
-		bunkrProvider.InitProvider()
-
-		return bunkrProvider
+		return NewBunkrProvider()
 	default:
 		return nil
 	}

@@ -14,9 +14,11 @@ type BunkrProvider struct {
 	BaseURL      string
 }
 
-func (p *BunkrProvider) InitProvider() {
-	p.ProviderName = "bunkr"
-	p.BaseURL = "https://bunkr.cr"
+func NewBunkrProvider() *BunkrProvider {
+	return &BunkrProvider{
+		ProviderName: "bunkr",
+		BaseURL:      "https://bunkr.cr",
+	}
 }
 
 func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]Photo, error) {

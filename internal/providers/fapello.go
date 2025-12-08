@@ -19,9 +19,13 @@ type FapelloProvider struct {
 	BaseURL      string
 }
 
-func (p *FapelloProvider) InitProvider() {
-	p.ProviderName = "fapello"
-	p.BaseURL = "https://fapello.com"
+func NewFapelloProvider() *FapelloProvider {
+	return &FapelloProvider{
+		MaxPhotoID:   100000,
+		MinPhotoID:   1,
+		ProviderName: "fapello",
+		BaseURL:      "https://fapello.com",
+	}
 }
 
 func (p *FapelloProvider) FetchPhotoURLs(collection string) ([]Photo, error) {

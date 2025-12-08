@@ -9,8 +9,7 @@ import (
 func TestFapodropService_GetCollectionStringFromURL(t *testing.T) {
 	t.Parallel()
 
-	provider := &providers.FapodropProvider{}
-	provider.InitProvider()
+	provider := providers.NewFapodropProvider()
 
 	tests := []providers.TestCase{
 		{"https://fapodrop.com/username", "username", false},

@@ -18,9 +18,13 @@ type FapodropProvider struct {
 	BaseURL      string
 }
 
-func (p *FapodropProvider) InitProvider() {
-	p.ProviderName = "fapodrop"
-	p.BaseURL = "https://fapodrop.com"
+func NewFapodropProvider() *FapodropProvider {
+	return &FapodropProvider{
+		MaxPhotoID:   100000,
+		MinPhotoID:   1,
+		ProviderName: "fapodrop",
+		BaseURL:      "https://fapodrop.com",
+	}
 }
 
 func (p *FapodropProvider) FetchPhotoURLs(collection string) ([]Photo, error) {

@@ -9,8 +9,7 @@ import (
 func TestBunkrService_GetCollectionStringFromURL(t *testing.T) {
 	t.Parallel()
 
-	provider := &providers.BunkrProvider{}
-	provider.InitProvider()
+	provider := providers.NewBunkrProvider()
 
 	tests := []providers.TestCase{
 		{"https://bunkrrr.org/a/album", "album", false},

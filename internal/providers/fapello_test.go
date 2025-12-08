@@ -9,8 +9,7 @@ import (
 func TestFapelloService_GetCollectionStringFromURL(t *testing.T) {
 	t.Parallel()
 
-	provider := &providers.FapelloProvider{}
-	provider.InitProvider()
+	provider := providers.NewFapelloProvider()
 
 	tests := []providers.TestCase{
 		{"https://fapello.com/username", "username", false},
