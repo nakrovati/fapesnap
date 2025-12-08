@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 permissions:
   contents: write
@@ -12,7 +12,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
-  release:
+  build:
     strategy:
       matrix:
         build:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build
         uses: dAppServer/wails-build-action@main
@@ -33,3 +33,48 @@ jobs:
           build-platform: ${{ matrix.build.platform }}
           go-version: 1.25
           node-version: 24
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Generate Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: HYBRID
+          configurationJson: |
+            {
+              "commit_template": "- #{{MERGE_SHA}} #{{TITLE}}",
+              "categories": [
+                {
+                    "title": "## ✨ Features",
+                    "labels": ["feat", "feature"]
+                },
+                {
+                    "title": "## 🔧 Fixes",
+                    "labels": ["fix", "bug"]
+                },
+                {
+                    "title": "## 📦 Other",
+                    "labels": []
+                }
+              ],
+              "label_extractor": [
+                {
+                  "pattern": "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\\([\\w\\-\\.]+\\))?(!)?: ([\\w ])+([\\s\\S]*)",
+                  "on_property": "title",
+                  "target": "$1"
+                }
+              ]
+            }
+
+      - name: Update release (Update the release created by wails-build-action)
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          body: ${{steps.github_release.outputs.changelog}}
