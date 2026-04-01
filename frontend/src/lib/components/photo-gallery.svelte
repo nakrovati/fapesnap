@@ -27,7 +27,7 @@
 				<Button
 					aria-label="Download photo"
 					size="icon"
-					class="absolute right-1 top-1 size-8"
+					class="absolute top-1 right-1 size-8"
 					onclick={() => downloadPhoto(photo.url)}
 				>
 					<Download />
