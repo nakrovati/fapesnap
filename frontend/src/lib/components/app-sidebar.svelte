@@ -4,11 +4,12 @@
 	import { KoFi } from "$lib/assets/icons";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import { BrowserOpenURL } from "$lib/wailsjs/runtime/runtime";
+	import { resolve } from "$app/paths";
 
 	const items = [
 		{ title: "Download photos", url: "/", icon: DownloadIcon },
 		{ title: "Settings", url: "/settings", icon: SettingsIcon },
-	];
+	] as const;
 </script>
 
 <Sidebar.Root>
@@ -20,7 +21,7 @@
 						<Sidebar.MenuItem>
 							<Sidebar.MenuButton>
 								{#snippet child({ props })}
-									<a href={item.url} {...props}>
+									<a href={resolve(item.url)} {...props}>
 										<item.icon />
 										<span>{item.title}</span>
 									</a>

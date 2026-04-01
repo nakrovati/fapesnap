@@ -62,7 +62,7 @@
 								{photoStore.maxParallelDownloads}
 							</Select.Trigger>
 							<Select.Content>
-								{#each [1, 2, 3, 4, 5] as n}
+								{#each [1, 2, 3, 4, 5] as n (n)}
 									<Select.Item value={n.toString()}>{n}</Select.Item>
 								{/each}
 							</Select.Content>

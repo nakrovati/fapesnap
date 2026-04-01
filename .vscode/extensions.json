@@ -1,9 +1,9 @@
 {
-    "recommendations": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "golang.go",
-        "svelte.svelte-vscode",
-        "bradlc.vscode-tailwindcss"
-    ]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "golang.go",
+    "svelte.svelte-vscode",
+    "bradlc.vscode-tailwindcss"
+  ]
 }

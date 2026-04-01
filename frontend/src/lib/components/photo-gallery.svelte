@@ -22,7 +22,7 @@
 		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 xl:block"></div>
 		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 2xl:block"></div>
 	{:else}
-		{#each photoStore.photos as photo}
+		{#each photoStore.photos as photo (photo.url)}
 			<div class="relative">
 				<Button
 					aria-label="Download photo"

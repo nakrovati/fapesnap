@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{js,jsx,ts,tsx,svelte}]
+indent_style = tab
+indent_size = 4
+
+[*.go]
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = false
+
+[go.{mod,work,work.sum,sum}]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_style = unset
+indent_size = unset
+
+[*.md]
+indent_size = 4
+trim_trailing_whitespace = false
