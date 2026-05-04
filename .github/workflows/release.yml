@@ -15,24 +15,74 @@ jobs:
   build:
     strategy:
       matrix:
-        build:
-          [
-            { name: Fapesnap, platform: linux/amd64, os: ubuntu-latest },
-            { name: Fapesnap, platform: windows/amd64, os: windows-latest },
-            { name: Fapesnap, platform: darwin/universal, os: macos-latest },
-          ]
-    runs-on: ${{ matrix.build.os }}
+        include:
+          - os: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+            artifact: fapesnap-linux-amd64.tar.gz
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            artifact: fapesnap-macos-arm64.app.zip
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            artifact: fapesnap-windows-amd64.exe
+          - os: windows-latest
+            goos: windows
+            goarch: arm64
+            artifact: fapesnap-windows-arm64.exe
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build
-        uses: dAppServer/wails-build-action@main
+      - uses: actions/setup-go@v6
         with:
-          build-name: ${{ matrix.build.name }}
-          build-platform: ${{ matrix.build.platform }}
-          go-version: 1.25
-          node-version: 24
+          go-version-file: "go.mod"
+          cache: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install linux dependencies
+        if: matrix.goos == 'linux'
+        run: sudo apt-get update -qq && sudo apt-get install -qy libwebkit2gtk-4.1-dev
+
+      - name: Build
+        shell: bash
+        run: |
+          TAGS=""
+          if [ "${{ matrix.goos }}" = "linux" ]; then
+            TAGS="-tags webkit2_41"
+          fi
+
+          wails build -platform ${{ matrix.goos }}/${{ matrix.goarch }} $TAGS
+
+      - name: Package Asset
+        shell: bash
+        run: |
+          if [ "${{ matrix.goos }}" == "linux" ]; then
+            tar -czf ${{ matrix.artifact }} -C build/bin fapesnap
+          elif [ "${{ matrix.goos }}" == "darwin" ]; then
+            (cd build/bin && zip -ry ../../${{ matrix.artifact }} fapesnap.app)
+          else
+            cp build/bin/*.exe ${{ matrix.artifact }}
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
 
   release:
     needs: build
@@ -40,6 +90,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
 
       - name: Generate Changelog
         id: github_release
@@ -75,6 +129,7 @@ jobs:
             }
 
       - name: Update release (Update the release created by wails-build-action)
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3
         with:
-          body: ${{steps.github_release.outputs.changelog}}
+          body: ${{ steps.github_release.outputs.changelog }}
+          files: artifacts/**/*
