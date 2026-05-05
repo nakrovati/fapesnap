@@ -1,5 +1,10 @@
-# Output
-/build/bin
+# Wails 3 dirs
+.task
+bin
+frontend/dist
+frontend/node_modules
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 
 # OS
 Thumbs.db
@@ -9,7 +14,3 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .zed
-
-# Wails 3 dirs
-/task
-/bin

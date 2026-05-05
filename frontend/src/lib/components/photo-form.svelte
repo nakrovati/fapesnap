@@ -2,7 +2,7 @@
 	import { Input } from "$lib/components/ui/input";
 	import * as Select from "$lib/components/ui/select";
 	import { providers } from "$lib/shared/constants";
-	import { StopTask } from "$lib/wailsjs/go/main/App";
+	import { StopTask } from "$bindings/appservice";
 	import { photoStore, previewPhotos, downloadPhotos } from "$lib/stores/photo-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Tooltip from "$lib/components/ui/tooltip";
@@ -70,7 +70,7 @@
 						</Select.Root>
 					</Tooltip.Trigger>
 					<Tooltip.Content>
-						<p>Number of photos uploaded simultaneously.</p>
+						<p>Number of photos downloaded simultaneously</p>
 					</Tooltip.Content>
 				</Tooltip.Root>
 			</Tooltip.Provider>

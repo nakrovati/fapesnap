@@ -4,14 +4,18 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
+		"dev": "vite",
+		"build": "vite build --mode production",
+		"build:dev": "vite build --minify false --mode development",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint ."
+	},
+	"dependencies": {
+		"@wailsio/runtime": "^3.0.0-alpha.79"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.1.0",

@@ -1,14 +1,14 @@
 import { toast } from "svelte-sonner";
-import { DownloadPhoto, DownloadPhotos, GetPhotos } from "$lib/wailsjs/go/main/App";
+import { AppService } from "$bindings/index";
 import { providers } from "$lib/shared/constants";
-import { providers as Providers } from "$lib/wailsjs/go/models";
+import { Photo } from "$bindings/internal/providers/models";
 
-type Photo = Providers.Photo & { providerName: string; collectionInput: string };
+type ExtendedPhoto = Photo & { providerName: string; collectionInput: string };
 
 interface PhotoStore {
 	providerName: string;
 	collectionInput: string;
-	photos: Photo[];
+	photos: ExtendedPhoto[];
 	maxParallelDownloads: string;
 	loading: boolean;
 	downloading: boolean;
@@ -28,7 +28,7 @@ export function previewPhotos() {
 
 	photoStore.loading = true;
 
-	GetPhotos(collectionInput, providerName)
+	AppService.GetPhotos(collectionInput, providerName)
 		.then((result) => {
 			photoStore.photos = result.map((photo) => ({
 				...photo,
@@ -51,7 +51,7 @@ export function downloadPhotos() {
 
 	photoStore.downloading = true;
 
-	DownloadPhotos(collectionInput, providerName, Number(maxParallelDownloads))
+	AppService.DownloadPhotos(collectionInput, providerName, Number(maxParallelDownloads))
 		.catch((error) => {
 			toast.error("Error", {
 				description: error,
@@ -65,7 +65,7 @@ export function downloadPhotos() {
 export function downloadPhoto(src: string) {
 	const { providerName, collectionInput } = photoStore;
 
-	DownloadPhoto(src, collectionInput, providerName)
+	AppService.DownloadPhoto(src, collectionInput, providerName)
 		.then(() => {
 			toast.success("Downloaded");
 		})

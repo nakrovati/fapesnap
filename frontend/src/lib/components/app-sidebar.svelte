@@ -3,7 +3,7 @@
 	import DownloadIcon from "@lucide/svelte/icons/download";
 	import { KoFi } from "$lib/assets/icons";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
-	import { BrowserOpenURL } from "$lib/wailsjs/runtime/runtime";
+	import { Browser } from "@wailsio/runtime";
 	import { resolve } from "$app/paths";
 
 	const items = [
@@ -38,7 +38,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
 					{#snippet child({ props })}
-						<button {...props} onclick={() => BrowserOpenURL("https://ko-fi.com/Y8Y3147KNB")}>
+						<button {...props} onclick={() => Browser.OpenURL("https://ko-fi.com/Y8Y3147KNB")}>
 							<KoFi />Support
 						</button>
 					{/snippet}

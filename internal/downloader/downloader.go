@@ -16,7 +16,7 @@ import (
 	"github.com/nakrovati/fapesnap/internal/config"
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 var (
@@ -37,6 +37,7 @@ func NewDownloader() *Downloader {
 }
 
 func (d *Downloader) DownloadPhotos(
+	app *application.App,
 	ctx context.Context,
 	photos []providers.Photo,
 	baseDownloadDir config.DownloadDir,
@@ -49,7 +50,7 @@ func (d *Downloader) DownloadPhotos(
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	runtime.EventsEmit(ctx, "download-start")
+	app.Event.Emit("download-start")
 
 	jobs := make(chan providers.Photo)
 	counterChan := make(chan int)
@@ -99,7 +100,7 @@ func (d *Downloader) DownloadPhotos(
 	wg.Wait()
 
 	close(counterChan)
-	runtime.EventsEmit(ctx, "download-complete",
+	app.Event.Emit("download-complete",
 		fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount),
 	)
 

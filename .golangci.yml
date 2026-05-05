@@ -3,6 +3,7 @@ version: "2"
 linters:
   default: all
   disable:
+    - gomodguard
     - depguard
     - err113
     - exhaustruct
@@ -12,6 +13,8 @@ linters:
     - revive
     - wsl
     - funlen
+    - dupl
+    - lll
   settings:
     varnamelen:
       ignore-decls:
@@ -22,5 +25,7 @@ linters:
   exclusions:
     paths:
       - "assets/"
+      - "task/"
+      - "bin/"
       - "build/"
       - "frontend/"
