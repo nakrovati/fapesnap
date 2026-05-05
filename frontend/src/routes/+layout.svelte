@@ -1,5 +1,5 @@
 <script lang="ts">
-	import "../app.css";
+	import "./layout.css";
 	import favicon from "$lib/assets/favicon.svg";
 	import { ModeWatcher } from "mode-watcher";
 	import * as Sidebar from "$lib/components/ui/sidebar";
