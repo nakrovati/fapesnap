@@ -18,8 +18,7 @@
 	const LAST_SELECTED_PROVIDER_KEY = "last-selected-provider";
 
 	$effect(() => {
-		photoStore.provider =
-			localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
+		photoStore.provider = localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
 		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.provider);
 	});
 

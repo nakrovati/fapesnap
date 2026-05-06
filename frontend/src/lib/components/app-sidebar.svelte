@@ -38,10 +38,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
 					{#snippet child({ props })}
-						<button
-							{...props}
-							onclick={() => BrowserOpenURL("https://ko-fi.com/Y8Y3147KNB")}
-						>
+						<button {...props} onclick={() => BrowserOpenURL("https://ko-fi.com/Y8Y3147KNB")}>
 							<KoFi />Support
 						</button>
 					{/snippet}
