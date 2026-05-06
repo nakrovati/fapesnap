@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,24 +114,31 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
+	req.Header = http.Header{
+		"User-Agent": {
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148 Safari/537.36",
+		},
+		"Accept":          {"image/avif,image/webp,image/apng,image/*,*/*;q=0.8"},
+		"Accept-Language": {"en-US,en;q=0.9"},
+		"Referer":         {deriveReferer(src)},
+		"Connection":      {"keep-alive"},
+	}
+
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download photo: %w", err)
 	}
+	defer resp.Body.Close()
 
-	defer func() {
-		err = resp.Body.Close()
-		if err != nil {
-			fmt.Printf("Failed to close response body: %v\n", err)
-		}
-	}()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("photo %s not found %w", src, ErrPhotoNotFound)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to download photo: %s", resp.Status)
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// ok
+	case http.StatusForbidden:
+		return fmt.Errorf("%d forbidden (headers/cookies/hotlink) for %s", resp.StatusCode, src)
+	case http.StatusNotFound:
+		return fmt.Errorf("%d photo %s not found: %w", resp.StatusCode, src, ErrPhotoNotFound)
+	default:
+		return fmt.Errorf("%d failed to download photo", resp.StatusCode)
 	}
 
 	err = d.SavePhoto(resp, src, dir)
@@ -168,4 +176,12 @@ func (d *Downloader) SavePhoto(resp *http.Response, src string, dir string) erro
 	}
 
 	return nil
+}
+
+func deriveReferer(src string) string {
+	u, err := url.Parse(src)
+	if err != nil {
+		return "https://example.com/"
+	}
+	return u.Scheme + "://" + u.Host + "/"
 }
