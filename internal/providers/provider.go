@@ -1,7 +1,7 @@
 package providers
 
 type Provider interface {
-	FetchPhotoURLs(collection string) ([]Photo, error)
+	FetchPhotoURLs(collectionSlug string) ([]Photo, error)
 	GetCollectionFromURL(url string) (string, error)
 }
 

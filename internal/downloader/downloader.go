@@ -39,10 +39,10 @@ func (d *Downloader) DownloadPhotos(
 	ctx context.Context,
 	photos []providers.Photo,
 	providerName string,
-	collectionName string,
+	collectionSlug string,
 	maxParallelDownloads int,
 ) error {
-	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
+	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionSlug)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
@@ -183,5 +183,6 @@ func deriveReferer(src string) string {
 	if err != nil {
 		return "https://example.com/"
 	}
+
 	return u.Scheme + "://" + u.Host + "/"
 }

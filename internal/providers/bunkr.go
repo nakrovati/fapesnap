@@ -21,8 +21,8 @@ func NewBunkrProvider() *BunkrProvider {
 	}
 }
 
-func (p *BunkrProvider) FetchPhotoURLs(collection string) ([]Photo, error) {
-	items, err := p.GetPhotos(collection)
+func (p *BunkrProvider) FetchPhotoURLs(collectionSlug string) ([]Photo, error) {
+	items, err := p.GetPhotos(collectionSlug)
 	if err != nil {
 		return []Photo{}, err
 	}

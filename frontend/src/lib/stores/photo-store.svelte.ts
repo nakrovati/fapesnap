@@ -3,11 +3,11 @@ import { DownloadPhoto, DownloadPhotos, GetPhotos } from "$lib/wailsjs/go/main/A
 import { providers } from "$lib/shared/constants";
 import { providers as Providers } from "$lib/wailsjs/go/models";
 
-type Photo = Providers.Photo & { provider: string; collection: string };
+type Photo = Providers.Photo & { providerName: string; collectionInput: string };
 
 interface PhotoStore {
-	provider: string;
-	collection: string;
+	providerName: string;
+	collectionInput: string;
 	photos: Photo[];
 	maxParallelDownloads: string;
 	loading: boolean;
@@ -15,8 +15,8 @@ interface PhotoStore {
 }
 
 export const photoStore = $state<PhotoStore>({
-	provider: providers[0]!.value,
-	collection: "",
+	providerName: providers[0]!.value,
+	collectionInput: "",
 	photos: [],
 	maxParallelDownloads: "3",
 	loading: false,
@@ -24,16 +24,16 @@ export const photoStore = $state<PhotoStore>({
 });
 
 export function previewPhotos() {
-	const { provider, collection } = photoStore;
+	const { providerName, collectionInput } = photoStore;
 
 	photoStore.loading = true;
 
-	GetPhotos(collection, provider)
+	GetPhotos(collectionInput, providerName)
 		.then((result) => {
 			photoStore.photos = result.map((photo) => ({
 				...photo,
-				provider,
-				collection,
+				providerName,
+				collectionInput,
 			}));
 		})
 		.catch((error) => {
@@ -47,11 +47,11 @@ export function previewPhotos() {
 }
 
 export function downloadPhotos() {
-	const { provider, collection, maxParallelDownloads } = photoStore;
+	const { providerName, collectionInput, maxParallelDownloads } = photoStore;
 
 	photoStore.downloading = true;
 
-	DownloadPhotos(collection, provider, Number(maxParallelDownloads))
+	DownloadPhotos(collectionInput, providerName, Number(maxParallelDownloads))
 		.catch((error) => {
 			toast.error("Error", {
 				description: error,
@@ -63,9 +63,9 @@ export function downloadPhotos() {
 }
 
 export function downloadPhoto(src: string) {
-	const { provider, collection } = photoStore;
+	const { providerName, collectionInput } = photoStore;
 
-	DownloadPhoto(src, collection, provider)
+	DownloadPhoto(src, collectionInput, providerName)
 		.then(() => {
 			toast.success("Downloaded");
 		})

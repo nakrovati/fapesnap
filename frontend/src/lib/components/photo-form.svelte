@@ -8,7 +8,7 @@
 	import * as Tooltip from "$lib/components/ui/tooltip";
 	import * as ButtonGroup from "$lib/components/ui/button-group";
 
-	let selectedProvider = $derived(providers.find((p) => p.value === photoStore.provider)!);
+	let selectedProvider = $derived(providers.find((p) => p.value === photoStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(
 		selectedProvider.type === "id"
 			? "Enter the album ID or URL"
@@ -18,12 +18,13 @@
 	const LAST_SELECTED_PROVIDER_KEY = "last-selected-provider";
 
 	$effect(() => {
-		photoStore.provider = localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
-		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.provider);
+		photoStore.providerName =
+			localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.providerName);
 	});
 
 	function handleProviderChange() {
-		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.provider);
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.providerName);
 	}
 </script>
 
@@ -34,11 +35,11 @@
 			placeholder={collectionTextFieldPlaceholder}
 			class="grow-1"
 			autocorrect="off"
-			bind:value={photoStore.collection}
+			bind:value={photoStore.collectionInput}
 		/>
 		<ButtonGroup.Root>
 			<Select.Root
-				bind:value={photoStore.provider}
+				bind:value={photoStore.providerName}
 				onValueChange={handleProviderChange}
 				type="single"
 			>

@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 )
 
-func GetDownloadDirectory(providerName string, collection string) (string, error) {
+func GetDownloadDirectory(providerName string, collectionSlug string) (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return "", err
 	}
 
-	downloadDir := filepath.Join(usr.HomeDir, "Downloads", "fapesnap", providerName, collection)
+	downloadDir := filepath.Join(usr.HomeDir, "Downloads", "fapesnap", providerName, collectionSlug)
 
 	err = os.MkdirAll(downloadDir, 0750)
 	if err != nil {

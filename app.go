@@ -25,16 +25,21 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (a *App) GetPhotos(collection string, provider string) ([]providers.Photo, error) {
+func (a *App) GetPhotos(collectionInput string, providerName string) ([]providers.Photo, error) {
 	a.StopTask()
 
-	if collection == "" {
+	if collectionInput == "" {
 		return nil, errors.New("collection cannot be empty")
 	}
 
-	a.scraper = scraper.NewScraper(provider)
+	a.scraper = scraper.NewScraper(providerName)
 
-	photos, err := a.scraper.GetPhotoURLs(collection)
+	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
+	if err != nil {
+		return []providers.Photo{}, fmt.Errorf("failed to resolve collection slug: %w", err)
+	}
+
+	photos, err := a.scraper.GetPhotoURLs(collectionSlug)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get photo URLs: %w", err)
 	}
@@ -42,10 +47,10 @@ func (a *App) GetPhotos(collection string, provider string) ([]providers.Photo, 
 	return photos, nil
 }
 
-func (a *App) DownloadPhotos(collectionName string, providerName string, maxParallelDownloads int) error {
+func (a *App) DownloadPhotos(collectionInput string, providerName string, maxParallelDownloads int) error {
 	a.StopTask()
 
-	if collectionName == "" {
+	if collectionInput == "" {
 		return errors.New("collection cannot be empty")
 	}
 
@@ -54,12 +59,17 @@ func (a *App) DownloadPhotos(collectionName string, providerName string, maxPara
 
 	a.scraper = scraper.NewScraper(providerName)
 
-	photoURLs, err := a.scraper.GetPhotoURLs(collectionName)
+	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
+	if err != nil {
+		return fmt.Errorf("failed to resolve collection slug: %w", err)
+	}
+
+	photoURLs, err := a.scraper.GetPhotoURLs(collectionSlug)
 	if err != nil {
 		return err
 	}
 
-	err = a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionName, maxParallelDownloads)
+	err = a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionSlug, maxParallelDownloads)
 	if err != nil {
 		fmt.Printf("Error downloading photos: %v\n", err)
 	} else {
@@ -69,10 +79,22 @@ func (a *App) DownloadPhotos(collectionName string, providerName string, maxPara
 	return nil
 }
 
-func (a *App) DownloadPhoto(src string, collectionName string, providerName string) error {
+func (a *App) DownloadPhoto(src string, collectionInput string, providerName string) error {
 	a.StopTask()
 
-	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionName)
+	provider := providers.GetProvider(providerName)
+	if provider == nil {
+		return nil
+	}
+
+	s := scraper.NewScraper(providerName)
+
+	collectionSlug, err := s.ResolveCollectionSlug(collectionInput)
+	if err != nil {
+		return fmt.Errorf("failed to resolve collection slug: %w", err)
+	}
+
+	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionSlug)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
