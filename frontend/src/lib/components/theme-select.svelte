@@ -11,7 +11,7 @@
 	type="single"
 	onValueChange={(val) => (val === "system" ? setMode("system") : setMode(val as Mode))}
 >
-	<Select.Trigger class="w-[180px]">
+	<Select.Trigger class="w-45">
 		{currentMode}
 	</Select.Trigger>
 	<Select.Content>

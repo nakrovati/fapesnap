@@ -15,12 +15,12 @@
 	)}
 >
 	{#if photoStore.loading}
-		<div class="aspect-[3/4] animate-pulse rounded bg-gray-500"></div>
-		<div class="aspect-[3/4] animate-pulse rounded bg-gray-500"></div>
-		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 md:block"></div>
-		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 lg:block"></div>
-		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 xl:block"></div>
-		<div class="hidden aspect-[3/4] animate-pulse rounded bg-gray-500 2xl:block"></div>
+		<div class="aspect-3/4 animate-pulse rounded bg-gray-500"></div>
+		<div class="aspect-3/4 animate-pulse rounded bg-gray-500"></div>
+		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 md:block"></div>
+		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 lg:block"></div>
+		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 xl:block"></div>
+		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 2xl:block"></div>
 	{:else}
 		{#each photoStore.photos as photo (photo.url)}
 			<div class="relative">

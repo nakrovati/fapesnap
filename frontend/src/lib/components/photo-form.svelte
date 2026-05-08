@@ -33,7 +33,7 @@
 		<Input
 			type="text"
 			placeholder={collectionTextFieldPlaceholder}
-			class="grow-1"
+			class="grow"
 			autocorrect="off"
 			bind:value={photoStore.collectionInput}
 		/>
@@ -43,7 +43,7 @@
 				onValueChange={handleProviderChange}
 				type="single"
 			>
-				<Select.Trigger class="w-[180px]">
+				<Select.Trigger class="w-45">
 					{selectedProvider.label}
 				</Select.Trigger>
 				<Select.Content>
