@@ -1,7 +1,15 @@
-build/bin
-node_modules
-frontend/dist
+# Output
+/build/bin
+
+# OS
+Thumbs.db
 .DS_Store
+
+# IDEs
 .vscode/*
 !.vscode/extensions.json
 .zed
+
+# Wails 3 dirs
+/task
+/bin
