@@ -3,7 +3,7 @@
 	import { cn } from "$lib/utils";
 	import type { ClassValue } from "svelte/elements";
 	import Button from "./ui/button/button.svelte";
-	import { Download } from "@lucide/svelte";
+	import Download from "@lucide/svelte/icons/download";
 
 	const { class: klass }: { class?: ClassValue } = $props();
 </script>

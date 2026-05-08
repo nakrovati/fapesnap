@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { GetDownloadDir, UnsetDownloadDir, SelectDownloadDir } from "$lib/wailsjs/go/main/App";
+	import { AppService } from "$bindings/index";
 	import ThemeSelect from "$lib/components/theme-select.svelte";
 	import { Button } from "$lib/components/ui/button";
-	import type { config } from "$lib/wailsjs/go/models";
+	import type { DownloadDir } from "$bindings/internal/config";
 	import X from "@lucide/svelte/icons/x";
 	import Label from "$lib/components/ui/label/label.svelte";
 
-	let selectedDownloadDir = $state<config.DownloadDir | null>();
+	let selectedDownloadDir = $state<DownloadDir | null>();
 
 	async function handleSelectDownloadDir() {
-		const downloadDir = await SelectDownloadDir();
+		const downloadDir = await AppService.SelectDownloadDir();
 		selectedDownloadDir = downloadDir;
 	}
 
 	async function handleUnsetDownloadDir() {
-		await UnsetDownloadDir();
+		await AppService.UnsetDownloadDir();
 		selectedDownloadDir = null;
 	}
 
 	$effect(() => {
-		GetDownloadDir().then((dir) => {
+		AppService.GetDownloadDir().then((dir) => {
 			selectedDownloadDir = dir;
 			console.log(dir);
 		});
