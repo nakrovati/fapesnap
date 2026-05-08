@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nakrovati/fapesnap/internal/config"
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -38,11 +39,12 @@ func NewDownloader() *Downloader {
 func (d *Downloader) DownloadPhotos(
 	ctx context.Context,
 	photos []providers.Photo,
+	baseDownloadDir config.DownloadDir,
 	providerName string,
 	collectionSlug string,
 	maxParallelDownloads int,
 ) error {
-	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionSlug)
+	downloadDir, err := utils.GetCollectionDownloadDir(baseDownloadDir, providerName, collectionSlug)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}

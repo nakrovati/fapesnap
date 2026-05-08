@@ -10,10 +10,22 @@ export function DownloadPhotos(arg1, arg2, arg3) {
   return window['go']['main']['App']['DownloadPhotos'](arg1, arg2, arg3);
 }
 
+export function GetDownloadDir() {
+  return window['go']['main']['App']['GetDownloadDir']();
+}
+
 export function GetPhotos(arg1, arg2) {
   return window['go']['main']['App']['GetPhotos'](arg1, arg2);
 }
 
+export function SelectDownloadDir() {
+  return window['go']['main']['App']['SelectDownloadDir']();
+}
+
 export function StopTask() {
   return window['go']['main']['App']['StopTask']();
+}
+
+export function UnsetDownloadDir() {
+  return window['go']['main']['App']['UnsetDownloadDir']();
 }

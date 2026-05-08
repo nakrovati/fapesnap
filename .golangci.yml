@@ -19,3 +19,8 @@ linters:
         - i int
         - wg sync.WaitGroup
         - e *colly.HTMLElement
+  exclusions:
+    paths:
+      - "assets/"
+      - "build/"
+      - "frontend/"

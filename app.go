@@ -4,20 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
+	"github.com/nakrovati/fapesnap/internal/config"
 	"github.com/nakrovati/fapesnap/internal/downloader"
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
 	"github.com/nakrovati/fapesnap/internal/scraper"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct.
 type App struct {
 	scraper    *scraper.Scraper
 	downloader *downloader.Downloader
+	config     *config.Config
 	//nolint:containedctx
 	ctx        context.Context
 	cancelFunc context.CancelFunc
+	mu         sync.RWMutex
 }
 
 // NewApp creates a new App application struct.
@@ -69,7 +74,7 @@ func (a *App) DownloadPhotos(collectionInput string, providerName string, maxPar
 		return err
 	}
 
-	err = a.downloader.DownloadPhotos(ctx, photoURLs, providerName, collectionSlug, maxParallelDownloads)
+	err = a.downloader.DownloadPhotos(ctx, photoURLs, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
 	if err != nil {
 		fmt.Printf("Error downloading photos: %v\n", err)
 	} else {
@@ -94,7 +99,7 @@ func (a *App) DownloadPhoto(src string, collectionInput string, providerName str
 		return fmt.Errorf("failed to resolve collection slug: %w", err)
 	}
 
-	downloadDir, err := utils.GetDownloadDirectory(providerName, collectionSlug)
+	downloadDir, err := utils.GetCollectionDownloadDir(a.config.DownloadDir, providerName, collectionSlug)
 	if err != nil {
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
@@ -105,6 +110,53 @@ func (a *App) DownloadPhoto(src string, collectionInput string, providerName str
 	}
 
 	return nil
+}
+
+func (a *App) GetDownloadDir() config.DownloadDir {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	return a.config.DownloadDir
+}
+
+func (a *App) SelectDownloadDir() (*config.DownloadDir, error) {
+	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select",
+	})
+	if err != nil {
+		return &config.DownloadDir{}, err
+	}
+
+	if err := utils.ValidateDir(dir); err != nil {
+		return &config.DownloadDir{}, err
+	}
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.config.DownloadDir = config.DownloadDir{
+		Path:      dir,
+		IsDefault: false,
+	}
+
+	if err := config.Save(a.config); err != nil {
+		return nil, err
+	}
+
+	return &a.config.DownloadDir, nil
+}
+
+func (a *App) UnsetDownloadDir() (*config.DownloadDir, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.config.DownloadDir = config.Default().DownloadDir
+
+	if err := config.Save(a.config); err != nil {
+		return nil, err
+	}
+
+	return &a.config.DownloadDir, nil
 }
 
 func (a *App) StopTask() {
@@ -119,4 +171,19 @@ func (a *App) StopTask() {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.downloader = downloader.NewDownloader()
+
+	cfg, err := config.Load()
+	if err != nil {
+		runtime.LogErrorf(
+			a.ctx,
+			"failed to load config: %v",
+			err,
+		)
+
+		a.config = config.Default()
+
+		return
+	}
+
+	a.config = cfg
 }

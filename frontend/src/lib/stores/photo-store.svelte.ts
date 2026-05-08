@@ -18,7 +18,7 @@ export const photoStore = $state<PhotoStore>({
 	providerName: providers[0]!.value,
 	collectionInput: "",
 	photos: [],
-	maxParallelDownloads: "3",
+	maxParallelDownloads: "1",
 	loading: false,
 	downloading: false,
 });
