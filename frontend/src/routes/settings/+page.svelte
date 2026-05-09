@@ -1,10 +1,11 @@
 <script lang="ts">
+	import type { DownloadDir } from "$bindings/internal/config";
+
 	import { AppService } from "$bindings/index";
 	import ThemeSelect from "$lib/components/theme-select.svelte";
 	import { Button } from "$lib/components/ui/button";
-	import type { DownloadDir } from "$bindings/internal/config";
-	import X from "@lucide/svelte/icons/x";
 	import Label from "$lib/components/ui/label/label.svelte";
+	import X from "@lucide/svelte/icons/x";
 
 	let selectedDownloadDir = $state<DownloadDir | null>();
 

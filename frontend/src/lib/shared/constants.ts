@@ -1,10 +1,10 @@
-export type Providers = "fapello" | "fapodrop" | "bunkr";
-
 export interface Provider {
-	value: Providers;
 	label: CapitalizeFirst<Providers>;
-	type: "name" | "id";
+	type: "id" | "name";
+	value: Providers;
 }
+
+export type Providers = "bunkr" | "fapello" | "fapodrop";
 
 export const providers: Provider[] = [
 	{

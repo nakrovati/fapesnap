@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { StopTask } from "$bindings/appservice";
+	import { Button } from "$lib/components/ui/button";
+	import * as ButtonGroup from "$lib/components/ui/button-group";
 	import { Input } from "$lib/components/ui/input";
 	import * as Select from "$lib/components/ui/select";
-	import { providers } from "$lib/shared/constants";
-	import { StopTask } from "$bindings/appservice";
-	import { photoStore, previewPhotos, downloadPhotos } from "$lib/stores/photo-store.svelte";
-	import { Button } from "$lib/components/ui/button";
 	import * as Tooltip from "$lib/components/ui/tooltip";
-	import * as ButtonGroup from "$lib/components/ui/button-group";
+	import { providers } from "$lib/shared/constants";
+	import { downloadPhotos, photoStore, previewPhotos } from "$lib/stores/photo-store.svelte";
 
 	let selectedProvider = $derived(providers.find((p) => p.value === photoStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(

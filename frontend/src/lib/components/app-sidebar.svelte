@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
+	import { KoFi } from "$lib/assets/icons";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import DownloadIcon from "@lucide/svelte/icons/download";
-	import { KoFi } from "$lib/assets/icons";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import { Browser } from "@wailsio/runtime";
-	import { resolve } from "$app/paths";
 
 	const items = [
 		{ title: "Download photos", url: "/", icon: DownloadIcon },
