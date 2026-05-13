@@ -12,38 +12,29 @@ import (
 )
 
 type FapodropProvider struct {
-	MaxPhotoID   int
-	MinPhotoID   int
 	ProviderName string
 	BaseURL      string
 }
 
 func NewFapodropProvider() *FapodropProvider {
 	return &FapodropProvider{
-		MaxPhotoID:   100000,
-		MinPhotoID:   1,
 		ProviderName: "fapodrop",
 		BaseURL:      "https://fapodrop.com",
 	}
 }
 
 func (p *FapodropProvider) FetchPhotoURLs(collectionSlug string) ([]Photo, error) {
-	if p.MinPhotoID > p.MaxPhotoID {
-		return []Photo{}, fmt.Errorf("min photo ID (%d) is greater than max photo ID (%d)", p.MinPhotoID, p.MaxPhotoID)
-	}
-
 	recentPhotoID, err := p.GetRecentPhotoID(collectionSlug)
 	if err != nil {
 		return []Photo{}, err
 	}
 
-	if p.MaxPhotoID > recentPhotoID {
-		p.MaxPhotoID = recentPhotoID
-	}
+	minPhotoID := 1
+	maxPhotoID := min(100000, recentPhotoID)
 
-	photos := make([]Photo, 0, p.MaxPhotoID-p.MinPhotoID+1)
+	photos := make([]Photo, 0, maxPhotoID)
 
-	for i := p.MaxPhotoID; i >= p.MinPhotoID; i-- {
+	for i := maxPhotoID; i >= minPhotoID; i-- {
 		photo, err := p.GetPhoto(strconv.Itoa(i), collectionSlug)
 		if err != nil {
 			fmt.Printf("Failed to get photo: %v\n", err)
