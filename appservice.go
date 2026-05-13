@@ -29,7 +29,7 @@ func NewAppService(app *application.App) *AppService {
 	}
 }
 
-func (a *AppService) GetPhotos(collectionInput string, providerName string) ([]providers.Photo, error) {
+func (a *AppService) GetMediaItems(collectionInput string, providerName string) ([]providers.Media, error) {
 	a.StopTask()
 
 	if collectionInput == "" {
@@ -40,18 +40,18 @@ func (a *AppService) GetPhotos(collectionInput string, providerName string) ([]p
 
 	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
 	if err != nil {
-		return []providers.Photo{}, fmt.Errorf("failed to resolve collection slug: %w", err)
+		return []providers.Media{}, fmt.Errorf("failed to resolve collection slug: %w", err)
 	}
 
-	photos, err := a.scraper.GetPhotoURLs(collectionSlug)
+	mediaItems, err := a.scraper.GetMediaItems(collectionSlug)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get photo URLs: %w", err)
+		return nil, fmt.Errorf("failed to get media URLs: %w", err)
 	}
 
-	return photos, nil
+	return mediaItems, nil
 }
 
-func (a *AppService) DownloadPhotos(collectionInput string, providerName string, maxParallelDownloads int) error {
+func (a *AppService) DownloadMediaItems(collectionInput string, providerName string, maxParallelDownloads int) error {
 	a.StopTask()
 
 	if collectionInput == "" {
@@ -68,22 +68,22 @@ func (a *AppService) DownloadPhotos(collectionInput string, providerName string,
 		return fmt.Errorf("failed to resolve collection slug: %w", err)
 	}
 
-	photoURLs, err := a.scraper.GetPhotoURLs(collectionSlug)
+	mediaItems, err := a.scraper.GetMediaItems(collectionSlug)
 	if err != nil {
 		return err
 	}
 
-	err = a.downloader.DownloadPhotos(a.app, ctx, photoURLs, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
+	err = a.downloader.DownloadMediaItems(a.app, ctx, mediaItems, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
 	if err != nil {
-		fmt.Printf("Error downloading photos: %v\n", err)
+		fmt.Printf("Error downloading media: %v\n", err)
 	} else {
-		fmt.Println("All photos downloaded successfully.")
+		fmt.Println("All media downloaded successfully.")
 	}
 
 	return nil
 }
 
-func (a *AppService) DownloadPhoto(src string, collectionInput string, providerName string) error {
+func (a *AppService) DownloadMedia(src string, collectionInput string, providerName string) error {
 	a.StopTask()
 
 	provider := providers.GetProvider(providerName)
@@ -103,9 +103,9 @@ func (a *AppService) DownloadPhoto(src string, collectionInput string, providerN
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	err = a.downloader.DownloadPhoto(a.app.Context(), src, downloadDir)
+	err = a.downloader.DownloadMedia(a.app.Context(), src, downloadDir)
 	if err != nil {
-		return fmt.Errorf("error downloading photo: %w", err)
+		return fmt.Errorf("error downloading media: %w", err)
 	}
 
 	return nil

@@ -6,10 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
-export class Photo {
+export class Media {
     /**
-     * Creates a new Photo instance.
-     * @param {Partial<Photo>} [$$source = {}] - The source object to create the Photo.
+     * Creates a new Media instance.
+     * @param {Partial<Media>} [$$source = {}] - The source object to create the Media.
      */
     constructor($$source = {}) {
         if (!("url" in $$source)) {
@@ -31,12 +31,12 @@ export class Photo {
     }
 
     /**
-     * Creates a new Photo instance from a string or object.
+     * Creates a new Media instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {Photo}
+     * @returns {Media}
      */
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new Photo(/** @type {Partial<Photo>} */($$parsedSource));
+        return new Media(/** @type {Partial<Media>} */($$parsedSource));
     }
 }

@@ -21,35 +21,35 @@ func NewBunkrProvider() *BunkrProvider {
 	}
 }
 
-func (p *BunkrProvider) FetchPhotoURLs(collectionSlug string) ([]Photo, error) {
-	items, err := p.GetPhotos(collectionSlug)
+func (p *BunkrProvider) FetchMediaItems(collectionSlug string) ([]Media, error) {
+	items, err := p.GetMedias(collectionSlug)
 	if err != nil {
-		return []Photo{}, err
+		return []Media{}, err
 	}
 
-	photos := make([]Photo, 0, len(items))
+	mediaItems := make([]Media, 0, len(items))
 
 	for _, item := range items {
-		photoURL, err := p.GetPhotoURL(item.Href)
+		mediaURL, err := p.GetMediaURL(item.Href)
 		if err != nil {
-			fmt.Printf("Failed to get photo: %v\n", err)
+			fmt.Printf("Failed to get media: %v\n", err)
 
 			continue
 		}
 
-		photo := Photo{
-			URL:          photoURL,
+		media := Media{
+			URL:          mediaURL,
 			ThumbnailURL: item.ThumbnailURL,
 		}
 
-		photos = append(photos, photo)
+		mediaItems = append(mediaItems, media)
 	}
 
-	if len(photos) == 0 {
-		return []Photo{}, errors.New("no photos found")
+	if len(mediaItems) == 0 {
+		return []Media{}, errors.New("no media found")
 	}
 
-	return photos, nil
+	return mediaItems, nil
 }
 
 type BunkrItem struct {
@@ -57,7 +57,7 @@ type BunkrItem struct {
 	ThumbnailURL string
 }
 
-func (p *BunkrProvider) GetPhotos(albumID string) ([]BunkrItem, error) {
+func (p *BunkrProvider) GetMedias(albumID string) ([]BunkrItem, error) {
 	albumURL, err := url.JoinPath(p.BaseURL, "a", albumID)
 	if err != nil {
 		return []BunkrItem{}, err
@@ -68,10 +68,10 @@ func (p *BunkrProvider) GetPhotos(albumID string) ([]BunkrItem, error) {
 	c := colly.NewCollector()
 
 	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
-		photoPageURL := e.ChildAttr("a[aria-label='download']", "href")
+		mediaPageURL := e.ChildAttr("a[aria-label='download']", "href")
 		thumbnailURL := e.ChildAttr("img.grid-images_box-img", "src")
 
-		href, err := url.JoinPath(p.BaseURL, photoPageURL)
+		href, err := url.JoinPath(p.BaseURL, mediaPageURL)
 		if err != nil {
 			fmt.Println(err)
 
@@ -118,22 +118,22 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
-func (p *BunkrProvider) GetPhotoURL(photoURL string) (string, error) {
+func (p *BunkrProvider) GetMediaURL(mediaURL string) (string, error) {
 	c := colly.NewCollector()
 
 	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
-		photoURL = e.ChildAttr("img.w-full.h-full.absolute", "src")
+		mediaURL = e.ChildAttr("img.w-full.h-full.absolute", "src")
 	})
 
-	err := c.Visit(photoURL)
+	err := c.Visit(mediaURL)
 	if err != nil {
 		return "", err
 	}
 
-	return photoURL, nil
+	return mediaURL, nil
 }
 
-func (p *BunkrProvider) GetPhotoID(src string) string {
+func (p *BunkrProvider) GetMediaID(src string) string {
 	u, err := url.Parse(src)
 	if err != nil {
 		return ""

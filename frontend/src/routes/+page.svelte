@@ -1,8 +1,8 @@
 <script lang="ts">
-	import PhotoForm from "$lib/components/photo-form.svelte";
-	import PhotoGallery from "$lib/components/photo-gallery.svelte";
+	import MediaDownloadForm from "$lib/components/media-download-form.svelte";
+	import MediaGallery from "$lib/components/media-gallery.svelte";
 </script>
 
-<PhotoForm />
+<MediaDownloadForm />
 
-<PhotoGallery class="mt-4" />
+<MediaGallery class="mt-4" />

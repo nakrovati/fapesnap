@@ -24,33 +24,33 @@ func NewFapelloProvider() *FapelloProvider {
 	}
 }
 
-func (p *FapelloProvider) FetchPhotoURLs(collectionSlug string) ([]Photo, error) {
-	recentPhotoID, err := p.GetRecentPhotoID(collectionSlug)
+func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error) {
+	recentMediaID, err := p.GetRecentMediaID(collectionSlug)
 	if err != nil {
-		return []Photo{}, err
+		return []Media{}, err
 	}
 
-	minPhotoID := 1
-	maxPhotoID := min(100000, recentPhotoID)
+	minMediaID := 1
+	maxMediaID := min(100000, recentMediaID)
 
-	photos := make([]Photo, 0, maxPhotoID)
+	mediaItems := make([]Media, 0, maxMediaID)
 
-	for i := maxPhotoID; i >= minPhotoID; i-- {
-		photo, err := p.GetPhoto(strconv.Itoa(i), collectionSlug)
+	for i := maxMediaID; i >= minMediaID; i-- {
+		media, err := p.GetMedia(strconv.Itoa(i), collectionSlug)
 		if err != nil {
-			fmt.Printf("Failed to get photo: %v\n", err)
+			fmt.Printf("Failed to get media: %v\n", err)
 
 			continue
 		}
 
-		photos = append(photos, photo)
+		mediaItems = append(mediaItems, media)
 	}
 
-	if len(photos) == 0 {
-		return []Photo{}, errors.New("no photos found")
+	if len(mediaItems) == 0 {
+		return []Media{}, errors.New("no media found")
 	}
 
-	return photos, nil
+	return mediaItems, nil
 }
 
 func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) {
@@ -73,40 +73,40 @@ func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapelloProvider) GetPhoto(photoID string, username string) (Photo, error) {
-	intPhotoID, err := strconv.Atoi(photoID)
+func (p *FapelloProvider) GetMedia(mediaID string, username string) (Media, error) {
+	intMediaID, err := strconv.Atoi(mediaID)
 	if err != nil {
-		return Photo{}, err
+		return Media{}, err
 	}
 
-	paddedID := fmt.Sprintf("%04d", intPhotoID)
-	photoName := fmt.Sprintf("%s_%v.jpg", username, paddedID)
-	photoThumbnailName := fmt.Sprintf("%s_%v_300px.jpg", username, paddedID)
+	paddedID := fmt.Sprintf("%04d", intMediaID)
+	mediaName := fmt.Sprintf("%s_%v.jpg", username, paddedID)
+	mediaThumbnailName := fmt.Sprintf("%s_%v_300px.jpg", username, paddedID)
 
-	urlWithoutID, err := p.buildURL(p.BaseURL, username, intPhotoID)
+	urlWithoutID, err := p.buildURL(p.BaseURL, username, intMediaID)
 	if err != nil {
-		return Photo{}, err
+		return Media{}, err
 	}
 
-	photoURL, err := url.JoinPath(urlWithoutID, photoName)
+	mediaURL, err := url.JoinPath(urlWithoutID, mediaName)
 	if err != nil {
-		return Photo{}, err
+		return Media{}, err
 	}
 
-	thumbnailURL, err := url.JoinPath(urlWithoutID, photoThumbnailName)
+	thumbnailURL, err := url.JoinPath(urlWithoutID, mediaThumbnailName)
 	if err != nil {
-		return Photo{}, err
+		return Media{}, err
 	}
 
-	photo := Photo{
-		URL:          photoURL,
+	media := Media{
+		URL:          mediaURL,
 		ThumbnailURL: thumbnailURL,
 	}
 
-	return photo, nil
+	return media, nil
 }
 
-func (p *FapelloProvider) GetRecentPhotoID(username string) (int, error) {
+func (p *FapelloProvider) GetRecentMediaID(username string) (int, error) {
 	c := colly.NewCollector()
 
 	userSrc, err := url.JoinPath(p.BaseURL, username)
@@ -115,18 +115,18 @@ func (p *FapelloProvider) GetRecentPhotoID(username string) (int, error) {
 	}
 
 	isFound := false
-	recentPhotoID := 0
+	recentMediaID := 0
 
 	c.OnHTML(fmt.Sprintf("#content div a[href*='%s']", username), func(e *colly.HTMLElement) {
 		if !isFound {
 			src := e.Attr("href")
 
-			photoID, err := p.parsePhotoID(src)
+			mediaID, err := p.parseMediaID(src)
 			if err != nil {
 				return
 			}
 
-			recentPhotoID = photoID
+			recentMediaID = mediaID
 			isFound = true
 		}
 	})
@@ -140,23 +140,23 @@ func (p *FapelloProvider) GetRecentPhotoID(username string) (int, error) {
 		return 0, errors.New("user not found")
 	}
 
-	return recentPhotoID, nil
+	return recentMediaID, nil
 }
 
 func (p *FapelloProvider) buildURL(baseURL string, username string, recentID int) (string, error) {
 	firstSymbol := string(username[0])
 	secondSymbol := string(username[1])
-	photoCountGroup := strconv.Itoa(utils.RoundUp(recentID))
+	countGroup := strconv.Itoa(utils.RoundUp(recentID))
 
-	photoURL, err := url.JoinPath(baseURL, "content", firstSymbol, secondSymbol, username, photoCountGroup)
+	mediaURL, err := url.JoinPath(baseURL, "content", firstSymbol, secondSymbol, username, countGroup)
 	if err != nil {
 		return "", err
 	}
 
-	return photoURL, nil
+	return mediaURL, nil
 }
 
-func (p *FapelloProvider) parsePhotoID(url string) (int, error) {
+func (p *FapelloProvider) parseMediaID(url string) (int, error) {
 	re := regexp.MustCompile(`\/(\d+)/$`)
 
 	matches := re.FindStringSubmatch(url)
@@ -164,10 +164,10 @@ func (p *FapelloProvider) parsePhotoID(url string) (int, error) {
 		return 0, fmt.Errorf("invalid url: %s", url)
 	}
 
-	photoID, err := strconv.Atoi(matches[1])
+	mediaID, err := strconv.Atoi(matches[1])
 	if err != nil {
 		return 0, err
 	}
 
-	return photoID, nil
+	return mediaID, nil
 }

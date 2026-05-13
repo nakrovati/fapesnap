@@ -6,9 +6,9 @@
 	import * as Select from "$lib/components/ui/select";
 	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { providers } from "$lib/shared/constants";
-	import { downloadPhotos, photoStore, previewPhotos } from "$lib/stores/photo-store.svelte";
+	import { downloadMediaItems, mediaStore, previewMediaItems } from "$lib/stores/media-store.svelte";
 
-	let selectedProvider = $derived(providers.find((p) => p.value === photoStore.providerName)!);
+	let selectedProvider = $derived(providers.find((p) => p.value === mediaStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(
 		selectedProvider.type === "id"
 			? "Enter the album ID or URL"
@@ -18,13 +18,13 @@
 	const LAST_SELECTED_PROVIDER_KEY = "last-selected-provider";
 
 	$effect(() => {
-		photoStore.providerName =
+		mediaStore.providerName =
 			localStorage.getItem(LAST_SELECTED_PROVIDER_KEY) ?? providers[0]!.value;
-		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.providerName);
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, mediaStore.providerName);
 	});
 
 	function handleProviderChange() {
-		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, photoStore.providerName);
+		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, mediaStore.providerName);
 	}
 </script>
 
@@ -35,11 +35,11 @@
 			placeholder={collectionTextFieldPlaceholder}
 			class="grow"
 			autocorrect="off"
-			bind:value={photoStore.collectionInput}
+			bind:value={mediaStore.collectionInput}
 		/>
 		<ButtonGroup.Root>
 			<Select.Root
-				bind:value={photoStore.providerName}
+				bind:value={mediaStore.providerName}
 				onValueChange={handleProviderChange}
 				type="single"
 			>
@@ -58,9 +58,9 @@
 			<Tooltip.Provider>
 				<Tooltip.Root>
 					<Tooltip.Trigger>
-						<Select.Root bind:value={photoStore.maxParallelDownloads} type="single">
+						<Select.Root bind:value={mediaStore.maxParallelDownloads} type="single">
 							<Select.Trigger class="rounded-l-none">
-								{photoStore.maxParallelDownloads}
+								{mediaStore.maxParallelDownloads}
 							</Select.Trigger>
 							<Select.Content>
 								{#each [1, 2, 3, 4, 5] as n (n)}
@@ -70,7 +70,7 @@
 						</Select.Root>
 					</Tooltip.Trigger>
 					<Tooltip.Content>
-						<p>Number of photos downloaded simultaneously</p>
+						<p>Number of media downloaded simultaneously</p>
 					</Tooltip.Content>
 				</Tooltip.Root>
 			</Tooltip.Provider>
@@ -78,15 +78,15 @@
 	</div>
 
 	<div class="mt-4 flex justify-center gap-2">
-		{#if !photoStore.loading}
-			{#if photoStore.downloading}
+		{#if !mediaStore.loading}
+			{#if mediaStore.downloading}
 				<Button onclick={StopTask} variant="destructive">Cancel</Button>
 			{:else}
-				<Button onclick={downloadPhotos}>Download all</Button>
+				<Button onclick={downloadMediaItems}>Download all</Button>
 			{/if}
 		{/if}
-		{#if !photoStore.downloading}
-			<Button onclick={previewPhotos}>Preview</Button>
+		{#if !mediaStore.downloading}
+			<Button onclick={previewMediaItems}>Preview</Button>
 		{/if}
 	</div>
 </div>

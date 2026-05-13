@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ClassValue } from "svelte/elements";
 
-	import { downloadPhoto, photoStore } from "$lib/stores/photo-store.svelte";
+	import { downloadMedia, mediaStore } from "$lib/stores/media-store.svelte";
 	import { cn } from "$lib/utils";
 	import Download from "@lucide/svelte/icons/download";
 
@@ -16,7 +16,7 @@
 		klass,
 	)}
 >
-	{#if photoStore.loading}
+	{#if mediaStore.loading}
 		<div class="aspect-3/4 animate-pulse rounded bg-gray-500"></div>
 		<div class="aspect-3/4 animate-pulse rounded bg-gray-500"></div>
 		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 md:block"></div>
@@ -24,18 +24,18 @@
 		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 xl:block"></div>
 		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 2xl:block"></div>
 	{:else}
-		{#each photoStore.photos as photo (photo.url)}
+		{#each mediaStore.mediaItems as media (media.url)}
 			<div class="relative">
 				<Button
-					aria-label="Download photo"
+					aria-label="Download media"
 					size="icon"
 					class="absolute top-1 right-1 size-8"
-					onclick={() => downloadPhoto(photo.url)}
+					onclick={() => downloadMedia(media.url)}
 				>
 					<Download />
 				</Button>
 				<img
-					src={photo.thumbnailUrl ?? photo.url}
+					src={media.thumbnailUrl ?? media.url}
 					alt=""
 					class="min-h-48 rounded object-contain object-top"
 					loading="lazy"

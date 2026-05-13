@@ -19,8 +19,8 @@ import * as providers$0 from "./internal/providers/models.js";
  * @param {string} providerName
  * @returns {$CancellablePromise<void>}
  */
-export function DownloadPhoto(src, collectionInput, providerName) {
-    return $Call.ByID(1585192130, src, collectionInput, providerName);
+export function DownloadMedia(src, collectionInput, providerName) {
+    return $Call.ByID(1565500426, src, collectionInput, providerName);
 }
 
 /**
@@ -29,8 +29,8 @@ export function DownloadPhoto(src, collectionInput, providerName) {
  * @param {number} maxParallelDownloads
  * @returns {$CancellablePromise<void>}
  */
-export function DownloadPhotos(collectionInput, providerName, maxParallelDownloads) {
-    return $Call.ByID(1851861667, collectionInput, providerName, maxParallelDownloads);
+export function DownloadMediaItems(collectionInput, providerName, maxParallelDownloads) {
+    return $Call.ByID(2935682774, collectionInput, providerName, maxParallelDownloads);
 }
 
 /**
@@ -45,10 +45,10 @@ export function GetDownloadDir() {
 /**
  * @param {string} collectionInput
  * @param {string} providerName
- * @returns {$CancellablePromise<providers$0.Photo[]>}
+ * @returns {$CancellablePromise<providers$0.Media[]>}
  */
-export function GetPhotos(collectionInput, providerName) {
-    return $Call.ByID(3978296423, collectionInput, providerName).then(/** @type {($result: any) => any} */(($result) => {
+export function GetMediaItems(collectionInput, providerName) {
+    return $Call.ByID(2981449778, collectionInput, providerName).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
 }
@@ -80,6 +80,6 @@ export function UnsetDownloadDir() {
 
 // Private type creation functions
 const $$createType0 = config$0.DownloadDir.createFrom;
-const $$createType1 = providers$0.Photo.createFrom;
+const $$createType1 = providers$0.Media.createFrom;
 const $$createType2 = $Create.Array($$createType1);
 const $$createType3 = $Create.Nullable($$createType0);

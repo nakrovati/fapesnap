@@ -1,7 +1,7 @@
 export const load = () => {
 	return {
 		meta: {
-			title: "Download photos",
+			title: "Download media",
 		},
 	};
 };

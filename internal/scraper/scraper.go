@@ -21,8 +21,8 @@ func NewScraper(providerName string) *Scraper {
 	}
 }
 
-func (s *Scraper) GetPhotoURLs(collectionSlug string) ([]providers.Photo, error) {
-	return s.provider.FetchPhotoURLs(collectionSlug)
+func (s *Scraper) GetMediaItems(collectionSlug string) ([]providers.Media, error) {
+	return s.provider.FetchMediaItems(collectionSlug)
 }
 
 func (s *Scraper) ResolveCollectionSlug(collectionInput string) (string, error) {

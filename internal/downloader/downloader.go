@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ErrPhotoNotFound = errors.New("photo not found")
+	ErrMediaNotFound = errors.New("resource not found")
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
@@ -36,10 +36,10 @@ func NewDownloader() *Downloader {
 	}
 }
 
-func (d *Downloader) DownloadPhotos(
+func (d *Downloader) DownloadMediaItems(
 	app *application.App,
 	ctx context.Context,
-	photos []providers.Photo,
+	mediaItems []providers.Media,
 	baseDownloadDir config.DownloadDir,
 	providerName string,
 	collectionSlug string,
@@ -52,48 +52,48 @@ func (d *Downloader) DownloadPhotos(
 
 	app.Event.Emit("download-start")
 
-	jobs := make(chan providers.Photo)
+	jobs := make(chan providers.Media)
 	counterChan := make(chan int)
 
 	var wg sync.WaitGroup
 
-	var downloadedPhotosCount int
+	var downloadedMediaCount int
 
 	go func() {
 		for count := range counterChan {
-			downloadedPhotosCount += count
+			downloadedMediaCount += count
 		}
 	}()
 
 	for range maxParallelDownloads {
 		wg.Go(func() {
-			for photo := range jobs {
+			for media := range jobs {
 				if ctx.Err() != nil {
-					fmt.Printf("Download cancelled for %s\n", photo.URL)
+					fmt.Printf("Download cancelled for %s\n", media.URL)
 
 					continue
 				}
 
-				err := d.DownloadPhoto(ctx, photo.URL, downloadDir)
+				err := d.DownloadMedia(ctx, media.URL, downloadDir)
 				if err != nil {
-					fmt.Printf("Failed to download photo: %v\n", err)
+					fmt.Printf("Failed to download media: %v\n", err)
 
 					continue
 				}
 
-				fmt.Printf("Downloaded %s\n", photo.URL)
+				fmt.Printf("Downloaded %s\n", media.URL)
 
 				counterChan <- 1
 			}
 		})
 	}
 
-	for _, photo := range photos {
+	for _, media := range mediaItems {
 		if ctx.Err() != nil {
 			break
 		}
 
-		jobs <- photo
+		jobs <- media
 	}
 
 	close(jobs)
@@ -101,7 +101,7 @@ func (d *Downloader) DownloadPhotos(
 
 	close(counterChan)
 	app.Event.Emit("download-complete",
-		fmt.Sprintf("Downloaded %d photos", downloadedPhotosCount),
+		fmt.Sprintf("Downloaded %d media items", downloadedMediaCount),
 	)
 
 	if ctx.Err() != nil {
@@ -111,7 +111,7 @@ func (d *Downloader) DownloadPhotos(
 	return nil
 }
 
-func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) error {
+func (d *Downloader) DownloadMedia(ctx context.Context, src string, dir string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -129,7 +129,7 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to download photo: %w", err)
+		return fmt.Errorf("failed to download media: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -139,12 +139,12 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 	case http.StatusForbidden:
 		return fmt.Errorf("%d forbidden (headers/cookies/hotlink) for %s", resp.StatusCode, src)
 	case http.StatusNotFound:
-		return fmt.Errorf("%d photo %s not found: %w", resp.StatusCode, src, ErrPhotoNotFound)
+		return fmt.Errorf("%d media %s not found: %w", resp.StatusCode, src, ErrMediaNotFound)
 	default:
-		return fmt.Errorf("%d failed to download photo", resp.StatusCode)
+		return fmt.Errorf("%d failed to download media", resp.StatusCode)
 	}
 
-	err = d.SavePhoto(resp, src, dir)
+	err = d.SaveMedia(resp, src, dir)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (d *Downloader) DownloadPhoto(ctx context.Context, src string, dir string) 
 	return nil
 }
 
-func (d *Downloader) SavePhoto(resp *http.Response, src string, dir string) error {
+func (d *Downloader) SaveMedia(resp *http.Response, src string, dir string) error {
 	fileName := filepath.Base(strings.Split(src, "?")[0])
 
 	filePath := filepath.Join(dir, fileName)
@@ -175,7 +175,7 @@ func (d *Downloader) SavePhoto(resp *http.Response, src string, dir string) erro
 
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to save photo: %w", err)
+		return fmt.Errorf("failed to save media: %w", err)
 	}
 
 	return nil

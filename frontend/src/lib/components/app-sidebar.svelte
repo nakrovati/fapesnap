@@ -7,7 +7,7 @@
 	import { Browser } from "@wailsio/runtime";
 
 	const items = [
-		{ title: "Download photos", url: "/", icon: DownloadIcon },
+		{ title: "Download media", url: "/", icon: DownloadIcon },
 		{ title: "Settings", url: "/settings", icon: SettingsIcon },
 	] as const;
 </script>

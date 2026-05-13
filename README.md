@@ -10,7 +10,7 @@ Provider list
 
 ## Usage
 
-Open the app, enter a collection name such as username in Fapello or album ID for Bunkr, select the provider and choose to download the photos or view them first.
+Open the app, enter a collection name such as username in Fapello or album ID for Bunkr, select the provider and choose to download the photos/videos or view them first.
 
 ![Application interface](./assets/fapesnap-interface.png)
 
@@ -30,10 +30,10 @@ To use the program on macOS, you will need to manually allow the program to run 
 > Allowing execution of macOS programs from unreliable sources is potentially dangerous. If you are afraid to allow execution of this program, download it on Windows or Linux.
 
 1. Open the system settings
-![Open the system settings](./assets/open-system-settings.jpg)
+   ![Open the system settings](./assets/open-system-settings.jpg)
 
 2. Go to privacy settings
-![Go to privacy settings](./assets/go-to-privacy-settings.jpg)
+   ![Go to privacy settings](./assets/go-to-privacy-settings.jpg)
 
 3. Allow the program to run
-![Allow the program to run](./assets/allow-program-execution.jpg)
+   ![Allow the program to run](./assets/allow-program-execution.jpg)

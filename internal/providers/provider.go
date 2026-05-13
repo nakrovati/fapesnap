@@ -1,13 +1,13 @@
 package providers
 
-type Provider interface {
-	FetchPhotoURLs(collectionSlug string) ([]Photo, error)
-	GetCollectionFromURL(url string) (string, error)
-}
-
-type Photo struct {
+type Media struct {
 	URL          string `json:"url"`
 	ThumbnailURL string `json:"thumbnailUrl,omitempty"`
+}
+
+type Provider interface {
+	FetchMediaItems(collectionSlug string) ([]Media, error)
+	GetCollectionFromURL(url string) (string, error)
 }
 
 //nolint:ireturn
