@@ -12,6 +12,13 @@ export class Media {
      * @param {Partial<Media>} [$$source = {}] - The source object to create the Media.
      */
     constructor($$source = {}) {
+        if (!("type" in $$source)) {
+            /**
+             * @member
+             * @type {MediaType}
+             */
+            this["type"] = MediaType.$zero;
+        }
         if (!("url" in $$source)) {
             /**
              * @member
@@ -40,3 +47,17 @@ export class Media {
         return new Media(/** @type {Partial<Media>} */($$parsedSource));
     }
 }
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+export const MediaType = {
+    /**
+     * The Go zero value for the underlying type of the enum.
+     */
+    $zero: "",
+
+    MediaTypePhoto: "photo",
+    MediaTypeVideo: "video",
+};

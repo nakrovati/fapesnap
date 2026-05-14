@@ -1,8 +1,16 @@
 package providers
 
+type MediaType string
+
+const (
+	MediaTypePhoto MediaType = "photo"
+	MediaTypeVideo MediaType = "video"
+)
+
 type Media struct {
-	URL          string `json:"url"`
-	ThumbnailURL string `json:"thumbnailUrl,omitempty"`
+	Type         MediaType `json:"type"`
+	URL          string    `json:"url"`
+	ThumbnailURL string    `json:"thumbnailUrl,omitempty"`
 }
 
 type Provider interface {

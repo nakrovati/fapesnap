@@ -38,6 +38,7 @@ func (p *BunkrProvider) FetchMediaItems(collectionSlug string) ([]Media, error) 
 		}
 
 		media := Media{
+			Type:         MediaTypePhoto,
 			URL:          mediaURL,
 			ThumbnailURL: item.ThumbnailURL,
 		}

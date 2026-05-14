@@ -99,6 +99,7 @@ func (p *FapelloProvider) GetMedia(mediaID string, username string) (Media, erro
 	}
 
 	media := Media{
+		Type:         MediaTypePhoto,
 		URL:          mediaURL,
 		ThumbnailURL: thumbnailURL,
 	}

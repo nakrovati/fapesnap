@@ -103,6 +103,7 @@ func (p *FapodropProvider) GetMedia(mediaID string, username string) (Media, err
 	}
 
 	media := Media{
+		Type:         MediaTypePhoto,
 		URL:          mediaURL,
 		ThumbnailURL: thumbnailURL,
 	}

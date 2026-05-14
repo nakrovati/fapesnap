@@ -26,6 +26,7 @@
 	{:else}
 		{#each mediaStore.mediaItems as media (media.url)}
 			<div class="relative">
+				{media.type}
 				<Button
 					aria-label="Download media"
 					size="icon"
