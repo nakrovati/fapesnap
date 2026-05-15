@@ -25,25 +25,23 @@ func NewFapelloProvider() *FapelloProvider {
 }
 
 func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error) {
-	recentMediaID, err := p.GetRecentMediaID(collectionSlug)
-	if err != nil {
-		return []Media{}, err
-	}
+	mediaItems := make([]Media, 0)
 
-	minMediaID := 1
-	maxMediaID := min(100000, recentMediaID)
+	for page := 1; ; page++ {
+		pageURL := p.pageURL(collectionSlug, page)
 
-	mediaItems := make([]Media, 0, maxMediaID)
-
-	for i := maxMediaID; i >= minMediaID; i-- {
-		media, err := p.GetMedia(strconv.Itoa(i), collectionSlug)
+		found, err := p.fetchPage(pageURL, collectionSlug, &mediaItems)
 		if err != nil {
-			fmt.Printf("Failed to get media: %v\n", err)
-
-			continue
+			return nil, err
 		}
 
-		mediaItems = append(mediaItems, media)
+		if page == 1 && found == 0 {
+			return nil, errors.New("user not found")
+		}
+
+		if found == 0 {
+			break
+		}
 	}
 
 	if len(mediaItems) == 0 {
@@ -73,7 +71,7 @@ func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapelloProvider) GetMedia(mediaID string, username string) (Media, error) {
+func (p *FapelloProvider) getMedia(mediaID string, username string) (Media, error) {
 	intMediaID, err := strconv.Atoi(mediaID)
 	if err != nil {
 		return Media{}, err
@@ -107,41 +105,32 @@ func (p *FapelloProvider) GetMedia(mediaID string, username string) (Media, erro
 	return media, nil
 }
 
-func (p *FapelloProvider) GetRecentMediaID(username string) (int, error) {
+func (p *FapelloProvider) getVideoURL(mediaPageURL string) (string, error) {
 	c := colly.NewCollector()
 
-	userSrc, err := url.JoinPath(p.BaseURL, username)
-	if err != nil {
-		return 0, err
-	}
-
+	videoURL := ""
 	isFound := false
-	recentMediaID := 0
 
-	c.OnHTML(fmt.Sprintf("#content div a[href*='%s']", username), func(e *colly.HTMLElement) {
-		if !isFound {
-			src := e.Attr("href")
-
-			mediaID, err := p.parseMediaID(src)
-			if err != nil {
-				return
-			}
-
-			recentMediaID = mediaID
-			isFound = true
+	c.OnHTML("video source[src]", func(e *colly.HTMLElement) {
+		src := e.Attr("src")
+		if src == "" {
+			return
 		}
+
+		videoURL = src
+		isFound = true
 	})
 
-	err = c.Visit(userSrc)
+	err := c.Visit(mediaPageURL)
 	if err != nil {
-		return 0, fmt.Errorf("failed to visit %s: %w", userSrc, err)
+		return "", err
 	}
 
 	if !isFound {
-		return 0, errors.New("user not found")
+		return "", errors.New("video source not found")
 	}
 
-	return recentMediaID, nil
+	return videoURL, nil
 }
 
 func (p *FapelloProvider) buildURL(baseURL string, username string, recentID int) (string, error) {
@@ -171,4 +160,82 @@ func (p *FapelloProvider) parseMediaID(url string) (int, error) {
 	}
 
 	return mediaID, nil
+}
+
+func (p *FapelloProvider) pageURL(slug string, page int) string {
+	if page == 1 {
+		return fmt.Sprintf("%s/%s/", p.BaseURL, slug)
+	}
+
+	return fmt.Sprintf("%s/ajax/model/%s/page-%d/", p.BaseURL, slug, page)
+}
+
+func (p *FapelloProvider) fetchPage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
+	c := colly.NewCollector()
+
+	found := 0
+
+	c.OnHTML(
+		fmt.Sprintf("a[href*='/%s/']", collectionSlug),
+		func(e *colly.HTMLElement) {
+			media, ok := p.parseCard(e, collectionSlug)
+			if !ok {
+				return
+			}
+
+			*mediaItems = append(*mediaItems, media)
+
+			found++
+		},
+	)
+
+	err := c.Visit(targetURL)
+	if err != nil {
+		return 0, err
+	}
+
+	return found, nil
+}
+
+func (p *FapelloProvider) isVideoCard(e *colly.HTMLElement) bool {
+	return strings.Contains(e.Text, "icon-play.svg") ||
+		e.ChildAttr("img[src*='icon-play.svg']", "src") != ""
+}
+
+func (p *FapelloProvider) parseCard(e *colly.HTMLElement, slug string) (Media, bool) {
+	href := e.Attr("href")
+	if href == "" {
+		return Media{}, false
+	}
+
+	img := e.ChildAttr("img", "src")
+	if img == "" {
+		return Media{}, false
+	}
+
+	id, err := p.parseMediaID(href)
+	if err != nil {
+		return Media{}, false
+	}
+
+	media, err := p.getMedia(strconv.Itoa(id), slug)
+	if err != nil {
+		return Media{}, false
+	}
+
+	media.ThumbnailURL = img
+
+	if p.isVideoCard(e) {
+		videoURL, err := p.getVideoURL(href)
+		if err != nil {
+			return Media{}, false
+		}
+
+		media.Type = MediaTypeVideo
+		media.URL = videoURL
+	} else {
+		media.Type = MediaTypePhoto
+	}
+
+	return media, true
 }

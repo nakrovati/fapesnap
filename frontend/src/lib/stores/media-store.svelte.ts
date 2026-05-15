@@ -1,6 +1,7 @@
 import { AppService } from "$bindings/index";
 import { Media } from "$bindings/internal/providers/models";
 import { providers } from "$lib/shared/constants";
+import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";
 
 type ExtendedMedia = Media & { collectionInput: string; providerName: string };
@@ -32,7 +33,7 @@ export function downloadMedia(src: string) {
 		})
 		.catch((error) => {
 			toast.error("Error", {
-				description: error,
+				description: parseWailsError(error).message,
 			});
 		});
 }
@@ -45,7 +46,7 @@ export function downloadMediaItems() {
 	AppService.DownloadMediaItems(collectionInput, providerName, Number(maxParallelDownloads))
 		.catch((error) => {
 			toast.error("Error", {
-				description: error,
+				description: parseWailsError(error).message,
 			});
 		})
 		.finally(() => {
@@ -68,7 +69,7 @@ export function previewMediaItems() {
 		})
 		.catch((error) => {
 			toast.error("Error", {
-				description: error,
+				description: parseWailsError(error).message,
 			});
 		})
 		.finally(() => {

@@ -18,7 +18,6 @@
 			toast("Download started");
 		});
 		Events.On("download-complete", (data) => {
-			console.log(data);
 			toast.success("Download complete", {
 				description: data.data.description,
 			});

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { ClassValue } from "svelte/elements";
 
+	import { MediaType } from "$bindings/internal/providers/models";
 	import { downloadMedia, mediaStore } from "$lib/stores/media-store.svelte";
 	import { cn } from "$lib/utils";
 	import Download from "@lucide/svelte/icons/download";
 
+	import Badge from "./ui/badge/badge.svelte";
 	import Button from "./ui/button/button.svelte";
 
 	const { class: klass }: { class?: ClassValue } = $props();
@@ -26,15 +28,19 @@
 	{:else}
 		{#each mediaStore.mediaItems as media (media.url)}
 			<div class="relative">
-				{media.type}
-				<Button
-					aria-label="Download media"
-					size="icon"
-					class="absolute top-1 right-1 size-8"
-					onclick={() => downloadMedia(media.url)}
-				>
-					<Download />
-				</Button>
+				<div class="absolute top-1 right-1 flex items-center gap-2">
+					{#if media.type === MediaType.MediaTypeVideo}
+						<Badge>{media.type}</Badge>
+					{/if}
+					<Button
+						aria-label="Download media"
+						size="icon"
+						class="size-8"
+						onclick={() => downloadMedia(media.url)}
+					>
+						<Download />
+					</Button>
+				</div>
 				<img
 					src={media.thumbnailUrl ?? media.url}
 					alt=""

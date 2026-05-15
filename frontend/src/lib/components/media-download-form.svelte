@@ -6,7 +6,11 @@
 	import * as Select from "$lib/components/ui/select";
 	import * as Tooltip from "$lib/components/ui/tooltip";
 	import { providers } from "$lib/shared/constants";
-	import { downloadMediaItems, mediaStore, previewMediaItems } from "$lib/stores/media-store.svelte";
+	import {
+		downloadMediaItems,
+		mediaStore,
+		previewMediaItems,
+	} from "$lib/stores/media-store.svelte";
 
 	let selectedProvider = $derived(providers.find((p) => p.value === mediaStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(
