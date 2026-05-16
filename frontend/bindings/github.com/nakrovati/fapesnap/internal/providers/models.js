@@ -33,6 +33,20 @@ export class Media {
              */
             this["thumbnailUrl"] = undefined;
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["name"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["size"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -58,6 +72,8 @@ export const MediaType = {
      */
     $zero: "",
 
-    MediaTypePhoto: "photo",
+    MediaTypeImage: "image",
     MediaTypeVideo: "video",
+    MediaTypeFile: "file",
+    MediaTypeUnknown: "unknown",
 };

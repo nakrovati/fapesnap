@@ -24,7 +24,7 @@ func NewFapodropProvider() *FapodropProvider {
 }
 
 func (p *FapodropProvider) FetchMediaItems(collectionSlug string) ([]Media, error) {
-	recentMediaID, err := p.GetRecentMediaID(collectionSlug)
+	recentMediaID, err := p.getRecentMediaID(collectionSlug)
 	if err != nil {
 		return []Media{}, err
 	}
@@ -35,7 +35,7 @@ func (p *FapodropProvider) FetchMediaItems(collectionSlug string) ([]Media, erro
 	mediaItems := make([]Media, 0, maxMediaID)
 
 	for i := maxMediaID; i >= minMediaID; i-- {
-		media, err := p.GetMedia(strconv.Itoa(i), collectionSlug)
+		media, err := p.getMedia(strconv.Itoa(i), collectionSlug)
 		if err != nil {
 			fmt.Printf("Failed to get media: %v\n", err)
 
@@ -72,7 +72,7 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapodropProvider) GetMedia(mediaID string, username string) (Media, error) {
+func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, error) {
 	intMediaID, err := strconv.Atoi(mediaID)
 	if err != nil {
 		return Media{}, err
@@ -103,7 +103,7 @@ func (p *FapodropProvider) GetMedia(mediaID string, username string) (Media, err
 	}
 
 	media := Media{
-		Type:         MediaTypePhoto,
+		Type:         MediaTypeImage,
 		URL:          mediaURL,
 		ThumbnailURL: thumbnailURL,
 	}
@@ -111,7 +111,7 @@ func (p *FapodropProvider) GetMedia(mediaID string, username string) (Media, err
 	return media, nil
 }
 
-func (p *FapodropProvider) GetRecentMediaID(username string) (int, error) {
+func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 	c := colly.NewCollector()
 
 	userPageURL, err := url.JoinPath(p.BaseURL, username)

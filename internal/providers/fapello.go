@@ -30,7 +30,7 @@ func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error
 	for page := 1; ; page++ {
 		pageURL := p.pageURL(collectionSlug, page)
 
-		found, err := p.fetchPage(pageURL, collectionSlug, &mediaItems)
+		found, err := p.fetchProfilePage(pageURL, collectionSlug, &mediaItems)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func (p *FapelloProvider) getMedia(mediaID string, username string) (Media, erro
 	}
 
 	media := Media{
-		Type:         MediaTypePhoto,
+		Type:         MediaTypeImage,
 		URL:          mediaURL,
 		ThumbnailURL: thumbnailURL,
 	}
@@ -170,7 +170,7 @@ func (p *FapelloProvider) pageURL(slug string, page int) string {
 	return fmt.Sprintf("%s/ajax/model/%s/page-%d/", p.BaseURL, slug, page)
 }
 
-func (p *FapelloProvider) fetchPage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
+func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
 	c := colly.NewCollector()
 
 	found := 0
@@ -234,7 +234,7 @@ func (p *FapelloProvider) parseCard(e *colly.HTMLElement, slug string) (Media, b
 		media.Type = MediaTypeVideo
 		media.URL = videoURL
 	} else {
-		media.Type = MediaTypePhoto
+		media.Type = MediaTypeImage
 	}
 
 	return media, true

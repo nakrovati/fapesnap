@@ -5,6 +5,7 @@
 	import { downloadMedia, mediaStore } from "$lib/stores/media-store.svelte";
 	import { cn } from "$lib/utils";
 	import Download from "@lucide/svelte/icons/download";
+	import FolderArchive from "@lucide/svelte/icons/folder-archive";
 
 	import Badge from "./ui/badge/badge.svelte";
 	import Button from "./ui/button/button.svelte";
@@ -29,9 +30,10 @@
 		{#each mediaStore.mediaItems as media (media.url)}
 			<div class="relative">
 				<div class="absolute top-1 right-1 flex items-center gap-2">
-					{#if media.type === MediaType.MediaTypeVideo}
+					{#if media.type === MediaType.MediaTypeVideo || media.type === MediaType.MediaTypeFile}
 						<Badge>{media.type}</Badge>
 					{/if}
+
 					<Button
 						aria-label="Download media"
 						size="icon"
@@ -41,12 +43,26 @@
 						<Download />
 					</Button>
 				</div>
-				<img
-					src={media.thumbnailUrl ?? media.url}
-					alt=""
-					class="min-h-48 rounded object-contain object-top"
-					loading="lazy"
-				/>
+				<div class="flex w-full justify-center">
+					{#if media.type === MediaType.MediaTypeImage || media.type === MediaType.MediaTypeVideo}
+						<img
+							src={media.thumbnailUrl ?? media.url}
+							alt=""
+							class="min-h-16 rounded object-contain object-top"
+							loading="lazy"
+						/>
+					{:else}
+						<div>
+							<FolderArchive class="size-36 text-zinc-700" />
+						</div>
+					{/if}
+				</div>
+				{#if media.name}
+					<p class="text-center">{media.name}</p>
+				{/if}
+				{#if media.size}
+					<p class="text-center text-sm text-zinc-500">{media.size}</p>
+				{/if}
 			</div>
 		{/each}
 	{/if}
