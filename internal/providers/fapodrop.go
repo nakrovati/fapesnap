@@ -76,45 +76,6 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	return parts[len(parts)-1], nil
 }
 
-func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, error) {
-	intMediaID, err := strconv.Atoi(mediaID)
-	if err != nil {
-		return Media{}, err
-	}
-
-	paddedID := fmt.Sprintf("%04d", intMediaID)
-	mediaName := fmt.Sprintf("%s_%s.jpeg", username, paddedID)
-	mediaThumbnailName := fmt.Sprintf("%s_%s_thumbnail.jpeg", username, paddedID)
-
-	urlWithoutID, err := p.buildURL(p.BaseURL, username)
-	if err != nil {
-		return Media{}, err
-	}
-
-	thumbnailURLWithoutID, err := p.buildThumbnailURL(p.BaseURL, username)
-	if err != nil {
-		return Media{}, err
-	}
-
-	mediaURL, err := url.JoinPath(urlWithoutID, mediaName)
-	if err != nil {
-		return Media{}, err
-	}
-
-	thumbnailURL, err := url.JoinPath(thumbnailURLWithoutID, mediaThumbnailName)
-	if err != nil {
-		return Media{}, err
-	}
-
-	media := Media{
-		Type:         MediaTypeImage,
-		URL:          mediaURL,
-		ThumbnailURL: thumbnailURL,
-	}
-
-	return media, nil
-}
-
 func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 	c := colly.NewCollector()
 
@@ -157,6 +118,64 @@ func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 	return recentMediaID, nil
 }
 
+func (p *FapodropProvider) parseMediaID(url string) (int, error) {
+	re := regexp.MustCompile(`\/\d{4}$`)
+
+	match := re.FindString(url)
+	if match == "" {
+		return 0, fmt.Errorf("invalid media url format: %s", url)
+	}
+
+	numStr := match[1:]                    // Take out the first "/"
+	numStr = strings.TrimLeft(numStr, "0") // Remove leading zeros
+
+	mediaID, err := strconv.Atoi(numStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return mediaID, err
+}
+
+func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, error) {
+	intMediaID, err := strconv.Atoi(mediaID)
+	if err != nil {
+		return Media{}, err
+	}
+
+	paddedID := fmt.Sprintf("%04d", intMediaID)
+	mediaName := fmt.Sprintf("%s_%s.jpeg", username, paddedID)
+	mediaThumbnailName := fmt.Sprintf("%s_%s_thumbnail.jpeg", username, paddedID)
+
+	urlWithoutID, err := p.buildURL(p.BaseURL, username)
+	if err != nil {
+		return Media{}, err
+	}
+
+	thumbnailURLWithoutID, err := p.buildThumbnailURL(p.BaseURL, username)
+	if err != nil {
+		return Media{}, err
+	}
+
+	mediaURL, err := url.JoinPath(urlWithoutID, mediaName)
+	if err != nil {
+		return Media{}, err
+	}
+
+	thumbnailURL, err := url.JoinPath(thumbnailURLWithoutID, mediaThumbnailName)
+	if err != nil {
+		return Media{}, err
+	}
+
+	media := Media{
+		Type:         MediaTypeImage,
+		URL:          mediaURL,
+		ThumbnailURL: thumbnailURL,
+	}
+
+	return media, nil
+}
+
 func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error) {
 	firstSymbol := name[0]
 	secondSymbol := name[1]
@@ -179,23 +198,4 @@ func (p *FapodropProvider) buildThumbnailURL(baseURL string, name string) (strin
 	}
 
 	return mediaThumbnailURL, nil
-}
-
-func (p *FapodropProvider) parseMediaID(url string) (int, error) {
-	re := regexp.MustCompile(`\/\d{4}$`)
-
-	match := re.FindString(url)
-	if match == "" {
-		return 0, fmt.Errorf("invalid media url format: %s", url)
-	}
-
-	numStr := match[1:]                    // Take out the first "/"
-	numStr = strings.TrimLeft(numStr, "0") // Remove leading zeros
-
-	mediaID, err := strconv.Atoi(numStr)
-	if err != nil {
-		return 0, err
-	}
-
-	return mediaID, err
 }

@@ -60,6 +60,45 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
+func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Media) error {
+	albumURL, err := url.JoinPath(p.BaseURL, "a", collectionSlug)
+	if err != nil {
+		return err
+	}
+
+	c := colly.NewCollector()
+
+	var visitErr error
+
+	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
+		item := p.parseItem(e)
+
+		mediaURL, err := p.getMediaURL(item.URL)
+		if err != nil {
+			return
+		}
+
+		item.URL = mediaURL
+
+		*mediaItems = append(*mediaItems, item)
+	})
+
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
+	err = c.Visit(albumURL)
+	if visitErr != nil {
+		return visitErr
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *BunkrProvider) getMediaURL(href string) (string, error) {
 	c := colly.NewCollector()
 
@@ -100,45 +139,6 @@ func (p *BunkrProvider) getMediaURL(href string) (string, error) {
 	}
 
 	return mediaURL, nil
-}
-
-func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Media) error {
-	albumURL, err := url.JoinPath(p.BaseURL, "a", collectionSlug)
-	if err != nil {
-		return err
-	}
-
-	c := colly.NewCollector()
-
-	var visitErr error
-
-	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
-		item := p.parseItem(e)
-
-		mediaURL, err := p.getMediaURL(item.URL)
-		if err != nil {
-			return
-		}
-
-		item.URL = mediaURL
-
-		*mediaItems = append(*mediaItems, item)
-	})
-
-	c.OnError(func(c *colly.Response, err error) {
-		visitErr = normalizeCollyError(c, err)
-	})
-
-	err = c.Visit(albumURL)
-	if visitErr != nil {
-		return visitErr
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *BunkrProvider) parseItem(e *colly.HTMLElement) Media {

@@ -71,6 +71,88 @@ func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	return parts[len(parts)-1], nil
 }
 
+func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
+	c := colly.NewCollector()
+
+	found := 0         // Page load requests (/ajax/model/...) return a 200 status code
+	var visitErr error //
+
+	c.OnHTML(
+		fmt.Sprintf("a[href*='/%s/']", collectionSlug),
+		func(e *colly.HTMLElement) {
+			media, ok := p.parseCard(e, collectionSlug)
+			if !ok {
+				return
+			}
+
+			*mediaItems = append(*mediaItems, media)
+
+			found++
+		},
+	)
+
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
+	err := c.Visit(targetURL)
+	if visitErr != nil {
+		return 0, visitErr
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	return found, nil
+}
+
+func (p *FapelloProvider) pageURL(slug string, page int) string {
+	if page == 1 {
+		return fmt.Sprintf("%s/%s/", p.BaseURL, slug)
+	}
+
+	return fmt.Sprintf("%s/ajax/model/%s/page-%d/", p.BaseURL, slug, page)
+}
+
+func (p *FapelloProvider) parseCard(e *colly.HTMLElement, slug string) (Media, bool) {
+	href := e.Attr("href")
+	if href == "" {
+		return Media{}, false
+	}
+
+	img := e.ChildAttr("img", "src")
+	if img == "" {
+		return Media{}, false
+	}
+
+	id, err := p.parseMediaID(href)
+	if err != nil {
+		return Media{}, false
+	}
+
+	media, err := p.getMedia(strconv.Itoa(id), slug)
+	if err != nil {
+		return Media{}, false
+	}
+
+	media.ThumbnailURL = img
+
+	if p.isVideoCard(e) {
+		videoURL, err := p.getVideoURL(href)
+		if err != nil {
+			return Media{}, false
+		}
+
+		media.Type = MediaTypeVideo
+		media.URL = videoURL
+	} else {
+		media.Type = MediaTypeImage
+	}
+
+	return media, true
+}
+
 func (p *FapelloProvider) getMedia(mediaID string, username string) (Media, error) {
 	intMediaID, err := strconv.Atoi(mediaID)
 	if err != nil {
@@ -167,89 +249,7 @@ func (p *FapelloProvider) parseMediaID(url string) (int, error) {
 	return mediaID, nil
 }
 
-func (p *FapelloProvider) pageURL(slug string, page int) string {
-	if page == 1 {
-		return fmt.Sprintf("%s/%s/", p.BaseURL, slug)
-	}
-
-	return fmt.Sprintf("%s/ajax/model/%s/page-%d/", p.BaseURL, slug, page)
-}
-
-func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
-	c := colly.NewCollector()
-
-	found := 0         // Page load requests (/ajax/model/...) return a 200 status code
-	var visitErr error //
-
-	c.OnHTML(
-		fmt.Sprintf("a[href*='/%s/']", collectionSlug),
-		func(e *colly.HTMLElement) {
-			media, ok := p.parseCard(e, collectionSlug)
-			if !ok {
-				return
-			}
-
-			*mediaItems = append(*mediaItems, media)
-
-			found++
-		},
-	)
-
-	c.OnError(func(c *colly.Response, err error) {
-		visitErr = normalizeCollyError(c, err)
-	})
-
-	err := c.Visit(targetURL)
-	if visitErr != nil {
-		return 0, visitErr
-	}
-
-	if err != nil {
-		return 0, err
-	}
-
-	return found, nil
-}
-
 func (p *FapelloProvider) isVideoCard(e *colly.HTMLElement) bool {
 	return strings.Contains(e.Text, "icon-play.svg") ||
 		e.ChildAttr("img[src*='icon-play.svg']", "src") != ""
-}
-
-func (p *FapelloProvider) parseCard(e *colly.HTMLElement, slug string) (Media, bool) {
-	href := e.Attr("href")
-	if href == "" {
-		return Media{}, false
-	}
-
-	img := e.ChildAttr("img", "src")
-	if img == "" {
-		return Media{}, false
-	}
-
-	id, err := p.parseMediaID(href)
-	if err != nil {
-		return Media{}, false
-	}
-
-	media, err := p.getMedia(strconv.Itoa(id), slug)
-	if err != nil {
-		return Media{}, false
-	}
-
-	media.ThumbnailURL = img
-
-	if p.isVideoCard(e) {
-		videoURL, err := p.getVideoURL(href)
-		if err != nil {
-			return Media{}, false
-		}
-
-		media.Type = MediaTypeVideo
-		media.URL = videoURL
-	} else {
-		media.Type = MediaTypeImage
-	}
-
-	return media, true
 }
