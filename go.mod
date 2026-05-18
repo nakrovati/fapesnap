@@ -6,7 +6,7 @@ toolchain go1.26.3
 
 require (
 	github.com/gocolly/colly/v2 v2.3.0
-	github.com/wailsapp/wails/v3 v3.0.0-alpha.91
+	github.com/wailsapp/wails/v3 v3.0.0-alpha.93
 )
 
 require (
