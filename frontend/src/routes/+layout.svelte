@@ -14,18 +14,18 @@
 	let { title } = $derived(page.data.meta);
 
 	$effect(() => {
-		Events.On("download-start", () => {
+		Events.On("download:started", () => {
 			toast("Download started");
 		});
-		Events.On("download-complete", (data) => {
+		Events.On("download:completed", (event) => {
 			toast.success("Download complete", {
-				description: data.data.description,
+				description: event.data,
 			});
 		});
 
 		return () => {
-			Events.Off("download-start");
-			Events.Off("download-complete");
+			Events.Off("download:started");
+			Events.Off("download:completed");
 		};
 	});
 </script>

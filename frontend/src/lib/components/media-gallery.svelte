@@ -58,7 +58,7 @@
 					{/if}
 				</div>
 				{#if media.name}
-					<p class="text-center">{media.name}</p>
+					<p class="line-clamp-2 w-full text-center">{media.name}</p>
 				{/if}
 				{#if media.size}
 					<p class="text-center text-sm text-zinc-500">{media.size}</p>

@@ -2,6 +2,7 @@ package providers
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -25,11 +26,15 @@ func (p *BunkrProvider) FetchMediaItems(collectionSlug string) ([]Media, error) 
 
 	err := p.fetchAlbumPage(collectionSlug, &mediaItems)
 	if err != nil {
+		if errors.Is(err, ErrVisitNotFound) {
+			return nil, fmt.Errorf("Profile not found: %s", collectionSlug)
+		}
+
 		return []Media{}, err
 	}
 
 	if len(mediaItems) == 0 {
-		return []Media{}, errors.New("no media found")
+		return []Media{}, ErrNoMediaFound
 	}
 
 	return mediaItems, nil
@@ -42,7 +47,7 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) && !strings.Contains(inputURL, "bunkr") {
-		return "", errors.New("unvalid domain")
+		return "", fmt.Errorf("%w: %s", ErrInvalidDomain, inputURL)
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
@@ -58,7 +63,10 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 func (p *BunkrProvider) getMediaURL(href string) (string, error) {
 	c := colly.NewCollector()
 
-	var mediaURL string
+	var (
+		mediaURL string
+		visitErr error
+	)
 
 	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
 		mediaURL = e.ChildAttr(
@@ -79,7 +87,14 @@ func (p *BunkrProvider) getMediaURL(href string) (string, error) {
 		}
 	})
 
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
 	err := c.Visit(href)
+	if visitErr != nil {
+		return "", visitErr
+	}
 	if err != nil {
 		return "", err
 	}
@@ -95,6 +110,8 @@ func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Medi
 
 	c := colly.NewCollector()
 
+	var visitErr error
+
 	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
 		item := p.parseItem(e)
 
@@ -108,13 +125,17 @@ func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Medi
 		*mediaItems = append(*mediaItems, item)
 	})
 
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
 	err = c.Visit(albumURL)
-	if err != nil {
-		return err
+	if visitErr != nil {
+		return visitErr
 	}
 
-	if len(*mediaItems) == 0 {
-		return errors.New("no media resources were found")
+	if err != nil {
+		return err
 	}
 
 	return nil

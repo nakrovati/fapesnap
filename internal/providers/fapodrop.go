@@ -26,7 +26,11 @@ func NewFapodropProvider() *FapodropProvider {
 func (p *FapodropProvider) FetchMediaItems(collectionSlug string) ([]Media, error) {
 	recentMediaID, err := p.getRecentMediaID(collectionSlug)
 	if err != nil {
-		return []Media{}, err
+		if errors.Is(err, ErrVisitNotFound) {
+			return []Media{}, fmt.Errorf("Profile not found: %s", collectionSlug)
+		}
+
+		return []Media{}, fmt.Errorf("Failed to get recent media ID: %w", err)
 	}
 
 	minMediaID := 1
@@ -46,7 +50,7 @@ func (p *FapodropProvider) FetchMediaItems(collectionSlug string) ([]Media, erro
 	}
 
 	if len(mediaItems) == 0 {
-		return []Media{}, errors.New("no media found")
+		return []Media{}, ErrNoMediaFound
 	}
 
 	return mediaItems, nil
@@ -59,14 +63,14 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) {
-		return "", errors.New("unvalid domain")
+		return "", fmt.Errorf("%w: %s", ErrInvalidDomain, inputURL)
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
 	parts := strings.Split(inputURL, "/")
 
 	if len(parts) < 4 || parts[len(parts)-1] == "" {
-		return "", errors.New("can't get collection from url")
+		return "", errors.New("Invalid collection url")
 	}
 
 	return parts[len(parts)-1], nil
@@ -121,6 +125,7 @@ func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 
 	isFound := false
 	recentMediaID := 0
+	var visitErr error
 
 	c.OnHTML(fmt.Sprintf(".one-pack a[href^='/%s']", username), func(e *colly.HTMLElement) {
 		if !isFound {
@@ -136,9 +141,17 @@ func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 		}
 	})
 
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
 	err = c.Visit(userPageURL)
+	if visitErr != nil {
+		return 0, visitErr
+	}
+
 	if err != nil {
-		return 0, fmt.Errorf("failed to visit %s: %w", userPageURL, err)
+		return 0, err
 	}
 
 	return recentMediaID, nil
@@ -150,7 +163,7 @@ func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error)
 
 	mediaURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("build url failed: %w", err)
 	}
 
 	return mediaURL, nil
@@ -162,7 +175,7 @@ func (p *FapodropProvider) buildThumbnailURL(baseURL string, name string) (strin
 
 	mediaThumbnailURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "thumbnails")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("build thumbnail url failed: %w", err)
 	}
 
 	return mediaThumbnailURL, nil
@@ -173,7 +186,7 @@ func (p *FapodropProvider) parseMediaID(url string) (int, error) {
 
 	match := re.FindString(url)
 	if match == "" {
-		return 0, fmt.Errorf("invalid url: %s", url)
+		return 0, fmt.Errorf("invalid media url format: %s", url)
 	}
 
 	numStr := match[1:]                    // Take out the first "/"

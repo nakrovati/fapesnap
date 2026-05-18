@@ -32,11 +32,11 @@ func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error
 
 		found, err := p.fetchProfilePage(pageURL, collectionSlug, &mediaItems)
 		if err != nil {
-			return nil, err
-		}
+			if errors.Is(err, ErrVisitNotFound) {
+				return nil, fmt.Errorf("Profile not found: %s", collectionSlug)
+			}
 
-		if page == 1 && found == 0 {
-			return nil, errors.New("user not found")
+			return nil, err
 		}
 
 		if found == 0 {
@@ -45,7 +45,7 @@ func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error
 	}
 
 	if len(mediaItems) == 0 {
-		return []Media{}, errors.New("no media found")
+		return []Media{}, ErrNoMediaFound
 	}
 
 	return mediaItems, nil
@@ -58,7 +58,7 @@ func (p *FapelloProvider) GetCollectionFromURL(inputURL string) (string, error) 
 	}
 
 	if !strings.Contains(inputURL, p.BaseURL) {
-		return "", errors.New("unvalid domain")
+		return "", fmt.Errorf("%w: %s", ErrInvalidDomain, inputURL)
 	}
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
@@ -108,8 +108,10 @@ func (p *FapelloProvider) getMedia(mediaID string, username string) (Media, erro
 func (p *FapelloProvider) getVideoURL(mediaPageURL string) (string, error) {
 	c := colly.NewCollector()
 
-	videoURL := ""
-	isFound := false
+	var (
+		videoURL string
+		visitErr error
+	)
 
 	c.OnHTML("video source[src]", func(e *colly.HTMLElement) {
 		src := e.Attr("src")
@@ -118,16 +120,19 @@ func (p *FapelloProvider) getVideoURL(mediaPageURL string) (string, error) {
 		}
 
 		videoURL = src
-		isFound = true
+	})
+
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
 	})
 
 	err := c.Visit(mediaPageURL)
-	if err != nil {
-		return "", err
+	if visitErr != nil {
+		return "", visitErr
 	}
 
-	if !isFound {
-		return "", errors.New("video source not found")
+	if err != nil {
+		return "", err
 	}
 
 	return videoURL, nil
@@ -140,7 +145,7 @@ func (p *FapelloProvider) buildURL(baseURL string, username string, recentID int
 
 	mediaURL, err := url.JoinPath(baseURL, "content", firstSymbol, secondSymbol, username, countGroup)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("build url failed: %w", err)
 	}
 
 	return mediaURL, nil
@@ -173,7 +178,8 @@ func (p *FapelloProvider) pageURL(slug string, page int) string {
 func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
 	c := colly.NewCollector()
 
-	found := 0
+	found := 0         // Page load requests (/ajax/model/...) return a 200 status code
+	var visitErr error //
 
 	c.OnHTML(
 		fmt.Sprintf("a[href*='/%s/']", collectionSlug),
@@ -189,7 +195,15 @@ func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug stri
 		},
 	)
 
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
 	err := c.Visit(targetURL)
+	if visitErr != nil {
+		return 0, visitErr
+	}
+
 	if err != nil {
 		return 0, err
 	}

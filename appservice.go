@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -32,20 +31,21 @@ func NewAppService(app *application.App) *AppService {
 func (a *AppService) GetMediaItems(collectionInput string, providerName string) ([]providers.Media, error) {
 	a.StopTask()
 
-	if collectionInput == "" {
-		return nil, errors.New("collection cannot be empty")
+	scr, err := scraper.NewScraper(providerName)
+	if err != nil {
+		return []providers.Media{}, err
 	}
 
-	a.scraper = scraper.NewScraper(providerName)
+	a.scraper = scr
 
 	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
 	if err != nil {
-		return []providers.Media{}, fmt.Errorf("failed to resolve collection slug: %w", err)
+		return []providers.Media{}, fmt.Errorf("Failed to resolve collection slug: %w", err)
 	}
 
 	mediaItems, err := a.scraper.GetMediaItems(collectionSlug)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get media URLs: %w", err)
+		return nil, err
 	}
 
 	return mediaItems, nil
@@ -54,18 +54,19 @@ func (a *AppService) GetMediaItems(collectionInput string, providerName string) 
 func (a *AppService) DownloadMediaItems(collectionInput string, providerName string, maxParallelDownloads int) error {
 	a.StopTask()
 
-	if collectionInput == "" {
-		return errors.New("collection cannot be empty")
-	}
-
 	ctx, cancel := context.WithCancel(a.app.Context())
 	a.cancel = cancel
 
-	a.scraper = scraper.NewScraper(providerName)
+	scr, err := scraper.NewScraper(providerName)
+	if err != nil {
+		return err
+	}
+
+	a.scraper = scr
 
 	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
 	if err != nil {
-		return fmt.Errorf("failed to resolve collection slug: %w", err)
+		return fmt.Errorf("Failed to resolve collection slug: %w", err)
 	}
 
 	mediaItems, err := a.scraper.GetMediaItems(collectionSlug)
@@ -73,11 +74,11 @@ func (a *AppService) DownloadMediaItems(collectionInput string, providerName str
 		return err
 	}
 
-	err = a.downloader.DownloadMediaItems(a.app, ctx, mediaItems, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
+	err = a.downloader.DownloadMediaItems(ctx, mediaItems, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
 	if err != nil {
-		fmt.Printf("Error downloading media: %v\n", err)
+		a.app.Logger.Error("Error downloading media files", "error", err)
 	} else {
-		fmt.Println("All media downloaded successfully.")
+		a.app.Logger.Info("All media downloaded successfully")
 	}
 
 	return nil
@@ -86,26 +87,26 @@ func (a *AppService) DownloadMediaItems(collectionInput string, providerName str
 func (a *AppService) DownloadMedia(src string, collectionInput string, providerName string) error {
 	a.StopTask()
 
-	provider := providers.GetProvider(providerName)
-	if provider == nil {
-		return nil
+	scr, err := scraper.NewScraper(providerName)
+	if err != nil {
+		return err
 	}
 
-	s := scraper.NewScraper(providerName)
+	a.scraper = scr
 
-	collectionSlug, err := s.ResolveCollectionSlug(collectionInput)
+	collectionSlug, err := a.scraper.ResolveCollectionSlug(collectionInput)
 	if err != nil {
-		return fmt.Errorf("failed to resolve collection slug: %w", err)
+		return fmt.Errorf("Failed to resolve collection slug: %w", err)
 	}
 
 	downloadDir, err := utils.GetCollectionDownloadDir(a.config.DownloadDir, providerName, collectionSlug)
 	if err != nil {
-		return fmt.Errorf("failed to get download directory: %w", err)
+		return fmt.Errorf("Failed to get download directory: %w", err)
 	}
 
 	err = a.downloader.DownloadMedia(a.app.Context(), src, downloadDir)
 	if err != nil {
-		return fmt.Errorf("error downloading media: %w", err)
+		return fmt.Errorf("Error downloading media: %w", err)
 	}
 
 	return nil
@@ -164,7 +165,7 @@ func (a *AppService) StopTask() {
 }
 
 func (a *AppService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
-	a.downloader = downloader.NewDownloader()
+	a.downloader = downloader.NewDownloader(a.app.Logger, a.app.Event)
 
 	cfg, err := config.Load()
 	if err != nil {

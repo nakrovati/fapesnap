@@ -1,7 +1,9 @@
 package scraper
 
 import (
+	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/nakrovati/fapesnap/internal/providers"
 )
@@ -10,15 +12,17 @@ type Scraper struct {
 	provider providers.Provider
 }
 
-func NewScraper(providerName string) *Scraper {
+var ErrInvalidProvider = errors.New("invalid provider")
+
+func NewScraper(providerName string) (*Scraper, error) {
 	provider := providers.GetProvider(providerName)
 	if provider == nil {
-		return nil
+		return nil, ErrInvalidProvider
 	}
 
 	return &Scraper{
 		provider: provider,
-	}
+	}, nil
 }
 
 func (s *Scraper) GetMediaItems(collectionSlug string) ([]providers.Media, error) {
@@ -26,14 +30,18 @@ func (s *Scraper) GetMediaItems(collectionSlug string) ([]providers.Media, error
 }
 
 func (s *Scraper) ResolveCollectionSlug(collectionInput string) (string, error) {
-	u, err := url.Parse(collectionInput)
-	if err == nil && u.Scheme != "" && u.Host != "" {
-		collectionSlug, err := s.provider.GetCollectionFromURL(collectionInput)
-		if err != nil {
-			return "", err
-		}
+	collectionInput = strings.TrimSpace(collectionInput)
+	if collectionInput == "" {
+		return "", errors.New("collection cannot be empty")
+	}
 
-		return collectionSlug, nil
+	u, err := url.Parse(collectionInput)
+	if err != nil {
+		return "", err
+	}
+
+	if u.Scheme != "" && u.Host != "" {
+		return s.provider.GetCollectionFromURL(collectionInput)
 	}
 
 	return collectionInput, nil

@@ -22,7 +22,6 @@
 	$effect(() => {
 		AppService.GetDownloadDir().then((dir) => {
 			selectedDownloadDir = dir;
-			console.log(dir);
 		});
 	});
 </script>
