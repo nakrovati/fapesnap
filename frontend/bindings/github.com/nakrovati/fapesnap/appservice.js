@@ -14,13 +14,13 @@ import * as config$0 from "./internal/config/models.js";
 import * as providers$0 from "./internal/providers/models.js";
 
 /**
- * @param {string} src
+ * @param {string} pageURL
  * @param {string} collectionInput
  * @param {string} providerName
  * @returns {$CancellablePromise<void>}
  */
-export function DownloadMedia(src, collectionInput, providerName) {
-    return $Call.ByID(1565500426, src, collectionInput, providerName);
+export function DownloadMedia(pageURL, collectionInput, providerName) {
+    return $Call.ByID(1565500426, pageURL, collectionInput, providerName);
 }
 
 /**

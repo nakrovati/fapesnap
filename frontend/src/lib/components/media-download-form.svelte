@@ -90,7 +90,7 @@
 			{/if}
 		{/if}
 		{#if !mediaStore.downloading}
-			<Button onclick={previewMediaItems}>Preview</Button>
+			<Button onclick={previewMediaItems} variant="secondary">Preview</Button>
 		{/if}
 	</div>
 </div>

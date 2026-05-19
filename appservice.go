@@ -74,6 +74,17 @@ func (a *AppService) DownloadMediaItems(collectionInput string, providerName str
 		return err
 	}
 
+	for i := range mediaItems {
+		if mediaItems[i].URL == "" {
+			mediaURL, err := a.scraper.ResolveMediaURL(mediaItems[i].PageURL, collectionSlug)
+			if err != nil {
+				break
+			}
+
+			mediaItems[i].URL = mediaURL
+		}
+	}
+
 	err = a.downloader.DownloadMediaItems(ctx, mediaItems, a.config.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
 	if err != nil {
 		a.app.Logger.Error("Error downloading media files", "error", err)
@@ -84,7 +95,7 @@ func (a *AppService) DownloadMediaItems(collectionInput string, providerName str
 	return nil
 }
 
-func (a *AppService) DownloadMedia(src string, collectionInput string, providerName string) error {
+func (a *AppService) DownloadMedia(pageURL string, collectionInput string, providerName string) error {
 	a.StopTask()
 
 	scr, err := scraper.NewScraper(providerName)
@@ -104,7 +115,12 @@ func (a *AppService) DownloadMedia(src string, collectionInput string, providerN
 		return fmt.Errorf("Failed to get download directory: %w", err)
 	}
 
-	err = a.downloader.DownloadMedia(a.app.Context(), src, downloadDir)
+	mediaURL, err := a.scraper.ResolveMediaURL(pageURL, collectionSlug)
+	if err != nil {
+		return err
+	}
+
+	err = a.downloader.DownloadMedia(a.app.Context(), mediaURL, downloadDir)
 	if err != nil {
 		return fmt.Errorf("Error downloading media: %w", err)
 	}

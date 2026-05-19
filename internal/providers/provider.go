@@ -11,7 +11,8 @@ const (
 
 type Media struct {
 	Type         MediaType `json:"type"`
-	URL          string    `json:"url"`
+	URL          string    `json:"url,omitempty"`
+	PageURL      string    `json:"pageUrl"`
 	ThumbnailURL string    `json:"thumbnailUrl,omitempty"`
 	Name         string    `json:"name,omitempty"`
 	Size         string    `json:"size,omitempty"`
@@ -20,6 +21,7 @@ type Media struct {
 type Provider interface {
 	FetchMediaItems(collectionSlug string) ([]Media, error)
 	GetCollectionFromURL(url string) (string, error)
+	GetMediaURL(pageURL string, collectionSlug string) (string, error)
 }
 
 //nolint:ireturn

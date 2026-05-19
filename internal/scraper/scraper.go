@@ -29,6 +29,10 @@ func (s *Scraper) GetMediaItems(collectionSlug string) ([]providers.Media, error
 	return s.provider.FetchMediaItems(collectionSlug)
 }
 
+func (s *Scraper) ResolveMediaURL(pageURL string, collectionSlug string) (string, error) {
+	return s.provider.GetMediaURL(pageURL, collectionSlug)
+}
+
 func (s *Scraper) ResolveCollectionSlug(collectionInput string) (string, error) {
 	collectionInput = strings.TrimSpace(collectionInput)
 	if collectionInput == "" {

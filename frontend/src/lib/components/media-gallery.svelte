@@ -1,14 +1,17 @@
 <script lang="ts">
 	import type { ClassValue } from "svelte/elements";
 
+	import { dev } from "$app/environment";
 	import { MediaType } from "$bindings/internal/providers/models";
 	import { downloadMedia, mediaStore } from "$lib/stores/media-store.svelte";
 	import { cn } from "$lib/utils";
 	import Download from "@lucide/svelte/icons/download";
 	import FolderArchive from "@lucide/svelte/icons/folder-archive";
+	import Info from "@lucide/svelte/icons/info";
 
 	import Badge from "./ui/badge/badge.svelte";
-	import Button from "./ui/button/button.svelte";
+	import Button, { buttonVariants } from "./ui/button/button.svelte";
+	import * as Tooltip from "./ui/tooltip";
 
 	const { class: klass }: { class?: ClassValue } = $props();
 </script>
@@ -27,18 +30,36 @@
 		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 xl:block"></div>
 		<div class="hidden aspect-3/4 animate-pulse rounded bg-gray-500 2xl:block"></div>
 	{:else}
-		{#each mediaStore.mediaItems as media (media.url)}
+		{#each mediaStore.mediaItems as media (media.pageUrl)}
 			<div class="relative">
 				<div class="absolute top-1 right-1 flex items-center gap-2">
 					{#if media.type === MediaType.MediaTypeVideo || media.type === MediaType.MediaTypeFile}
 						<Badge>{media.type}</Badge>
 					{/if}
 
+					{#if dev}<Tooltip.Provider>
+							<Tooltip.Root>
+								<Tooltip.Trigger class={buttonVariants({ variant: "secondary", size: "icon" })}>
+									<Info />
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<div class="flex flex-col gap-1">
+										{#each Object.entries(media) as [key, value] (key)}
+											<dl class="flex gap-1">
+												<dt>{key}:</dt>
+												<dd class=" font-mono break-all text-zinc-800">{value}</dd>
+											</dl>
+										{/each}
+									</div>
+								</Tooltip.Content>
+							</Tooltip.Root>
+						</Tooltip.Provider>
+					{/if}
 					<Button
 						aria-label="Download media"
 						size="icon"
 						class="size-8"
-						onclick={() => downloadMedia(media.url)}
+						onclick={() => downloadMedia(media.pageUrl)}
 					>
 						<Download />
 					</Button>

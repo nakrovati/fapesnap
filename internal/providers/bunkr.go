@@ -60,6 +60,37 @@ func (p *BunkrProvider) GetCollectionFromURL(inputURL string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
+func (p *BunkrProvider) GetMediaURL(pageURL string, collectionSlug string) (string, error) {
+	c := colly.NewCollector()
+
+	var (
+		mediaURL string
+		visitErr error
+	)
+
+	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
+		mediaURL = e.ChildAttr(
+			"img.w-full.h-full.absolute[src]",
+			"src",
+		)
+	})
+
+	c.OnError(func(c *colly.Response, err error) {
+		visitErr = normalizeCollyError(c, err)
+	})
+
+	err := c.Visit(pageURL)
+	if visitErr != nil {
+		return "", visitErr
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return mediaURL, nil
+}
+
 func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Media) error {
 	albumURL, err := url.JoinPath(p.BaseURL, "a", collectionSlug)
 	if err != nil {
@@ -72,13 +103,6 @@ func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Medi
 
 	c.OnHTML(".theItem", func(e *colly.HTMLElement) {
 		item := p.parseItem(e)
-
-		mediaURL, err := p.getMediaURL(item.URL)
-		if err != nil {
-			return
-		}
-
-		item.URL = mediaURL
 
 		*mediaItems = append(*mediaItems, item)
 	})
@@ -99,65 +123,23 @@ func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Medi
 	return nil
 }
 
-func (p *BunkrProvider) getMediaURL(href string) (string, error) {
-	c := colly.NewCollector()
-
-	var (
-		mediaURL string
-		visitErr error
-	)
-
-	c.OnHTML("main.cont", func(e *colly.HTMLElement) {
-		mediaURL = e.ChildAttr(
-			".cont img.w-full.h-full.absolute[src]",
-			"src",
-		)
-		if mediaURL != "" {
-			return
-		}
-
-		downloadURL := e.ChildAttr(
-			"a[href*=\"get.bunkrr.su/file/\"]",
-			"href",
-		)
-
-		if downloadURL != "" {
-			mediaURL = downloadURL + "#"
-		}
-	})
-
-	c.OnError(func(c *colly.Response, err error) {
-		visitErr = normalizeCollyError(c, err)
-	})
-
-	err := c.Visit(href)
-	if visitErr != nil {
-		return "", visitErr
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return mediaURL, nil
-}
-
 func (p *BunkrProvider) parseItem(e *colly.HTMLElement) Media {
 	mediaType := p.checkMediaType(e)
 
 	href := e.ChildAttr("a[aria-label='download']", "href")
+
+	pageURL, err := url.JoinPath(p.BaseURL, href)
+	if err != nil {
+		return Media{}
+	}
 
 	var thumbnailURL string
 	if mediaType == MediaTypeImage || mediaType == MediaTypeVideo {
 		thumbnailURL = e.ChildAttr("img.grid-images_box-img", "src")
 	}
 
-	itemURL, err := url.JoinPath(p.BaseURL, href)
-	if err != nil {
-		return Media{}
-	}
-
 	return Media{
-		URL:          itemURL,
+		PageURL:      pageURL,
 		Name:         e.ChildText(".theName"),
 		Size:         e.ChildText(".theSize"),
 		ThumbnailURL: thumbnailURL,

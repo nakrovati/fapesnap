@@ -76,6 +76,24 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	return parts[len(parts)-1], nil
 }
 
+func (p *FapodropProvider) GetMediaURL(pageURL string, collectionSlug string) (string, error) {
+	mediaID, err := p.parseMediaID(pageURL)
+	if err != nil {
+		return "", err
+	}
+
+	paddedMediaID := fmt.Sprintf("%04d", mediaID)
+
+	mediaName := fmt.Sprintf("%s_%s.jpeg", collectionSlug, paddedMediaID)
+
+	mediaURL, err := p.buildURL(p.BaseURL, collectionSlug)
+	if err != nil {
+		return "", err
+	}
+
+	return url.JoinPath(mediaURL, mediaName)
+}
+
 func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 	c := colly.NewCollector()
 
@@ -144,20 +162,14 @@ func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, err
 	}
 
 	paddedID := fmt.Sprintf("%04d", intMediaID)
-	mediaName := fmt.Sprintf("%s_%s.jpeg", username, paddedID)
 	mediaThumbnailName := fmt.Sprintf("%s_%s_thumbnail.jpeg", username, paddedID)
-
-	urlWithoutID, err := p.buildURL(p.BaseURL, username)
-	if err != nil {
-		return Media{}, err
-	}
 
 	thumbnailURLWithoutID, err := p.buildThumbnailURL(p.BaseURL, username)
 	if err != nil {
 		return Media{}, err
 	}
 
-	mediaURL, err := url.JoinPath(urlWithoutID, mediaName)
+	pageURL, err := url.JoinPath(p.BaseURL, username, paddedID)
 	if err != nil {
 		return Media{}, err
 	}
@@ -169,7 +181,7 @@ func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, err
 
 	media := Media{
 		Type:         MediaTypeImage,
-		URL:          mediaURL,
+		PageURL:      pageURL,
 		ThumbnailURL: thumbnailURL,
 	}
 

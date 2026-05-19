@@ -19,12 +19,19 @@ export class Media {
              */
             this["type"] = MediaType.$zero;
         }
-        if (!("url" in $$source)) {
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["url"] = undefined;
+        }
+        if (!("pageUrl" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["url"] = "";
+            this["pageUrl"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
