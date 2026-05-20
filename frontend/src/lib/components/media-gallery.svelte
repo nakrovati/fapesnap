@@ -2,18 +2,31 @@
 	import type { ClassValue } from "svelte/elements";
 
 	import { dev } from "$app/environment";
-	import { MediaType } from "$bindings/internal/providers/models";
+	import { Media, MediaType } from "$bindings/internal/providers/models";
 	import { downloadMedia, mediaStore } from "$lib/stores/media-store.svelte";
 	import { cn } from "$lib/utils";
 	import Download from "@lucide/svelte/icons/download";
 	import FolderArchive from "@lucide/svelte/icons/folder-archive";
 	import Info from "@lucide/svelte/icons/info";
+	import { Browser } from "@wailsio/runtime";
 
 	import Badge from "./ui/badge/badge.svelte";
 	import Button, { buttonVariants } from "./ui/button/button.svelte";
 	import * as Tooltip from "./ui/tooltip";
 
 	const { class: klass }: { class?: ClassValue } = $props();
+
+	async function handleDownloadMedia(media: Media) {
+		if (
+			media.type === MediaType.MediaTypeVideo ||
+			media.type === MediaType.MediaTypeFile ||
+			media.type === MediaType.MediaTypeUnknown
+		) {
+			await Browser.OpenURL(media.pageUrl);
+		} else {
+			downloadMedia(media.pageUrl);
+		}
+	}
 </script>
 
 <div
@@ -33,7 +46,7 @@
 		{#each mediaStore.mediaItems as media (media.pageUrl)}
 			<div class="relative">
 				<div class="absolute top-1 right-1 flex items-center gap-2">
-					{#if media.type === MediaType.MediaTypeVideo || media.type === MediaType.MediaTypeFile}
+					{#if media.type === MediaType.MediaTypeVideo || media.type === MediaType.MediaTypeFile || media.type === MediaType.MediaTypeUnknown}
 						<Badge>{media.type}</Badge>
 					{/if}
 
@@ -59,7 +72,7 @@
 						aria-label="Download media"
 						size="icon"
 						class="size-8"
-						onclick={() => downloadMedia(media.pageUrl)}
+						onclick={() => handleDownloadMedia(media)}
 					>
 						<Download />
 					</Button>
