@@ -4,7 +4,7 @@
 	import { AppService } from "$bindings/index";
 	import ThemeSelect from "$lib/components/theme-select.svelte";
 	import { Button } from "$lib/components/ui/button";
-	import Label from "$lib/components/ui/label/label.svelte";
+	import { Label } from "$lib/components/ui/label";
 	import X from "@lucide/svelte/icons/x";
 
 	let selectedDownloadDir = $state<DownloadDir | null>();

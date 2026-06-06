@@ -26,6 +26,17 @@ var (
 	ErrUsernameEmpty = errors.New("username cannot be empty")
 )
 
+type DownloadMediaEvent struct {
+	PageURL string `json:"pageUrl"`
+	Error   string `json:"error,omitempty"`
+}
+
+type DownloadBatchEvent struct {
+	Total      int `json:"total"`
+	Downloaded int `json:"downloaded,omitempty"`
+	Failed     int `json:"failed,omitempty"`
+}
+
 type Downloader struct {
 	httpClient *http.Client
 	logger     *slog.Logger
@@ -55,17 +66,20 @@ func (d *Downloader) DownloadMediaItems(
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	d.event.Emit("download:started")
+	d.event.Emit("download:batch-started")
 
 	jobs := make(chan providers.Media)
 
 	var wg sync.WaitGroup
 	var downloadedMediaCount int64
+	var failedMediaCount int64
 
 	worker := func() {
 		for media := range jobs {
-			err := d.DownloadMedia(ctx, media.URL, downloadDir)
+			err := d.DownloadMedia(ctx, media.PageURL, media.URL, downloadDir)
 			if err != nil {
+				atomic.AddInt64(&failedMediaCount, 1)
+
 				d.logger.Error("Failed to download media", "url", media.URL, "error", err)
 
 				continue
@@ -95,13 +109,11 @@ func (d *Downloader) DownloadMediaItems(
 
 	wg.Wait()
 
-	totalMediaCount := int64(len(mediaItems))
-
-	if totalMediaCount > downloadedMediaCount {
-		d.event.Emit("download:completed", fmt.Sprintf("%d files out of %d downloaded", downloadedMediaCount, len(mediaItems)))
-	} else {
-		d.event.Emit("download:completed", fmt.Sprintf("Downloaded %d files", downloadedMediaCount))
-	}
+	d.event.Emit("download:batch-completed", DownloadBatchEvent{
+		Total:      len(mediaItems),
+		Downloaded: int(downloadedMediaCount),
+		Failed:     int(failedMediaCount),
+	})
 
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -110,9 +122,18 @@ func (d *Downloader) DownloadMediaItems(
 	return nil
 }
 
-func (d *Downloader) DownloadMedia(ctx context.Context, src string, dir string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
+func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir string) error {
+	d.event.Emit("download:media-started", DownloadMediaEvent{
+		PageURL: pageURL,
+	})
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
+		d.event.Emit("download:media-failed", DownloadMediaEvent{
+			PageURL: pageURL,
+			Error:   err.Error(),
+		})
+
 		return fmt.Errorf("build request: %w", err)
 	}
 
@@ -122,12 +143,17 @@ func (d *Downloader) DownloadMedia(ctx context.Context, src string, dir string) 
 		},
 		"Accept":          {"image/avif,image/webp,image/apng,image/*,*/*;q=0.8"},
 		"Accept-Language": {"en-US,en;q=0.9"},
-		"Referer":         {deriveReferer(src)},
+		"Referer":         {deriveReferer(url)},
 		"Connection":      {"keep-alive"},
 	}
 
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
+		d.event.Emit("download:media-failed", DownloadMediaEvent{
+			PageURL: pageURL,
+			Error:   err.Error(),
+		})
+
 		return fmt.Errorf("http request failed: %w", err)
 	}
 	defer resp.Body.Close()
@@ -136,16 +162,25 @@ func (d *Downloader) DownloadMedia(ctx context.Context, src string, dir string) 
 	case http.StatusOK:
 		// ok
 	case http.StatusForbidden:
-		return fmt.Errorf("forbidden (headers/cookies/hotlink): %d, %s", resp.StatusCode, src)
+		return fmt.Errorf("forbidden (headers/cookies/hotlink): %d, %s", resp.StatusCode, url)
 	case http.StatusNotFound:
-		return fmt.Errorf("media not found: %d, %s", resp.StatusCode, src)
+		return fmt.Errorf("media not found: %d, %s", resp.StatusCode, url)
 	default:
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	if err := d.SaveMedia(resp, src, dir); err != nil {
+	if err := d.SaveMedia(resp, url, dir); err != nil {
+		d.event.Emit("download:media-failed", DownloadMediaEvent{
+			PageURL: pageURL,
+			Error:   err.Error(),
+		})
+
 		return fmt.Errorf("save media: %w", err)
 	}
+
+	d.event.Emit("download:media-completed", DownloadMediaEvent{
+		PageURL: pageURL,
+	})
 
 	return nil
 }

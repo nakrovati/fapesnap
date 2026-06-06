@@ -5,29 +5,11 @@
 	import AppSidebar from "$lib/components/app-sidebar.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar";
 	import { Toaster } from "$lib/components/ui/sonner";
-	import { Events } from "@wailsio/runtime";
 	import { ModeWatcher } from "mode-watcher";
-	import { toast } from "svelte-sonner";
 
 	let { children } = $props();
 
 	let { title } = $derived(page.data.meta);
-
-	$effect(() => {
-		Events.On("download:started", () => {
-			toast("Download started");
-		});
-		Events.On("download:completed", (event) => {
-			toast.success("Download complete", {
-				description: event.data,
-			});
-		});
-
-		return () => {
-			Events.Off("download:started");
-			Events.Off("download:completed");
-		};
-	});
 </script>
 
 <svelte:head>

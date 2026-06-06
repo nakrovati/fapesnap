@@ -120,7 +120,7 @@ func (a *AppService) DownloadMedia(pageURL string, collectionInput string, provi
 		return err
 	}
 
-	err = a.downloader.DownloadMedia(a.app.Context(), mediaURL, downloadDir)
+	err = a.downloader.DownloadMedia(a.app.Context(), pageURL, mediaURL, downloadDir)
 	if err != nil {
 		return fmt.Errorf("Error downloading media: %w", err)
 	}

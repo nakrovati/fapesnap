@@ -4,12 +4,18 @@ import { providers } from "$lib/shared/constants";
 import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";
 
-type ExtendedMedia = Media & { collectionInput: string; providerName: string };
+export type ExtendedMedia = Media & {
+	collectionInput: string;
+	downloadStatus?: DownloadStatus;
+	providerName: string;
+};
+
+type DownloadStatus = "completed" | "downloading" | "failed" | "pending";
 
 interface MediaStore {
 	collectionInput: string;
-	downloading: boolean;
-	loading: boolean;
+	isDownloading: boolean;
+	isPreviewLoading: boolean;
 	maxParallelDownloads: string;
 	mediaItems: ExtendedMedia[];
 	providerName: string;
@@ -20,59 +26,63 @@ export const mediaStore = $state<MediaStore>({
 	collectionInput: "",
 	mediaItems: [],
 	maxParallelDownloads: "1",
-	loading: false,
-	downloading: false,
+	isPreviewLoading: false,
+	isDownloading: false,
 });
 
-export function downloadMedia(src: string) {
+export async function downloadMedia(pageUrl: string) {
 	const { providerName, collectionInput } = mediaStore;
 
-	AppService.DownloadMedia(src, collectionInput, providerName)
-		.then(() => {
-			toast.success("Downloaded");
-		})
-		.catch((error) => {
-			toast.error("Error", {
-				description: parseWailsError(error).message,
-			});
+	try {
+		await AppService.DownloadMedia(pageUrl, collectionInput, providerName);
+
+		toast.success("Downloaded");
+	} catch (error) {
+		toast.error("Error", {
+			description: parseWailsError(error).message,
 		});
+	}
 }
 
-export function downloadMediaItems() {
+export async function downloadMediaItems() {
 	const { providerName, collectionInput, maxParallelDownloads } = mediaStore;
 
-	mediaStore.downloading = true;
+	mediaStore.isDownloading = true;
 
-	AppService.DownloadMediaItems(collectionInput, providerName, Number(maxParallelDownloads))
-		.catch((error) => {
-			toast.error("Error", {
-				description: parseWailsError(error).message,
-			});
-		})
-		.finally(() => {
-			mediaStore.downloading = false;
+	try {
+		await AppService.DownloadMediaItems(
+			collectionInput,
+			providerName,
+			Number(maxParallelDownloads),
+		);
+	} catch (error) {
+		toast.error("Error", {
+			description: parseWailsError(error).message,
 		});
+	} finally {
+		mediaStore.isDownloading = false;
+	}
 }
 
-export function previewMediaItems() {
+export async function previewMediaItems() {
 	const { providerName, collectionInput } = mediaStore;
 
-	mediaStore.loading = true;
+	mediaStore.isPreviewLoading = true;
 
-	AppService.GetMediaItems(collectionInput, providerName)
-		.then((result) => {
-			mediaStore.mediaItems = result.map((media) => ({
-				...media,
-				providerName,
-				collectionInput,
-			}));
-		})
-		.catch((error) => {
-			toast.error("Error", {
-				description: parseWailsError(error).message,
-			});
-		})
-		.finally(() => {
-			mediaStore.loading = false;
+	try {
+		const mediaItems = await AppService.GetMediaItems(collectionInput, providerName);
+
+		mediaStore.mediaItems = mediaItems.map((media) => ({
+			...media,
+			providerName,
+			collectionInput,
+			downloadStatus: undefined,
+		}));
+	} catch (error) {
+		toast.error("Error", {
+			description: parseWailsError(error).message,
 		});
+	} finally {
+		mediaStore.isPreviewLoading = false;
+	}
 }

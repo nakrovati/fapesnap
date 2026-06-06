@@ -11,6 +11,8 @@
 		mediaStore,
 		previewMediaItems,
 	} from "$lib/stores/media-store.svelte";
+	import { Events } from "@wailsio/runtime";
+	import { toast } from "svelte-sonner";
 
 	let selectedProvider = $derived(providers.find((p) => p.value === mediaStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(
@@ -29,6 +31,54 @@
 
 	function handleProviderChange() {
 		localStorage.setItem(LAST_SELECTED_PROVIDER_KEY, mediaStore.providerName);
+	}
+
+	$effect(() => {
+		Events.On("download:batch-started", () => {
+			for (const item of mediaStore.mediaItems) {
+				item.downloadStatus = "pending";
+			}
+
+			toast("Download started");
+		});
+		Events.On("download:batch-completed", (event) => {
+			toast.success("Download complete", {
+				description: `Downloading completed! ${event.data.downloaded} of ${event.data.total} items downloaded.`,
+			});
+		});
+
+		Events.On("download:media-started", ({ data }) => {
+			const mediaItem = mediaStore.mediaItems.find((m) => m.pageUrl === data.pageUrl);
+			if (mediaItem) mediaItem.downloadStatus = "downloading";
+		});
+		Events.On("download:media-completed", ({ data }) => {
+			const mediaItem = mediaStore.mediaItems.find((m) => m.pageUrl === data.pageUrl);
+			if (mediaItem) mediaItem.downloadStatus = "completed";
+		});
+		Events.On("download:media-failed", ({ data }) => {
+			const mediaItem = mediaStore.mediaItems.find((m) => m.pageUrl === data.pageUrl);
+			if (mediaItem) mediaItem.downloadStatus = "failed";
+		});
+
+		return () => {
+			Events.Off(
+				"download:batch-started",
+				"download:batch-completed",
+				"download:media-started",
+				"download:media-completed",
+				"download:media-failed",
+			);
+		};
+	});
+
+	async function handleCancelCurrentTasks() {
+		await StopTask();
+
+		for (const item of mediaStore.mediaItems) {
+			if (item.downloadStatus === "pending") {
+				item.downloadStatus = undefined;
+			}
+		}
 	}
 </script>
 
@@ -82,14 +132,14 @@
 	</div>
 
 	<div class="mt-4 flex justify-center gap-2">
-		{#if !mediaStore.loading}
-			{#if mediaStore.downloading}
-				<Button onclick={StopTask} variant="destructive">Cancel</Button>
+		{#if !mediaStore.isPreviewLoading}
+			{#if mediaStore.isDownloading}
+				<Button onclick={handleCancelCurrentTasks} variant="destructive">Cancel</Button>
 			{:else}
 				<Button onclick={downloadMediaItems}>Download all</Button>
 			{/if}
 		{/if}
-		{#if !mediaStore.downloading}
+		{#if !mediaStore.isDownloading}
 			<Button onclick={previewMediaItems} variant="secondary">Preview</Button>
 		{/if}
 	</div>
