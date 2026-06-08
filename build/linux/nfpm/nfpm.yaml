@@ -3,7 +3,7 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: ""
+name: "fapesnap"
 arch: ${GOARCH}
 platform: "linux"
 version: "2.2.3"
@@ -17,12 +17,12 @@ license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/"
-    dst: "/usr/local/bin/"
+  - src: "./bin/fapesnap"
+    dst: "/usr/local/bin/fapesnap"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/.png"
-  - src: "./build/linux/.desktop"
-    dst: "/usr/share/applications/.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/fapesnap.png"
+  - src: "./build/linux/fapesnap.desktop"
+    dst: "/usr/share/applications/fapesnap.desktop"
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
 depends:

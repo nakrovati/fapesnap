@@ -30,6 +30,8 @@ func main() {
 	app.RegisterService(application.NewService(NewAppService(app)))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title:     "Fapesnap",
+		URL:       "/",
 		Width:     1024,
 		MinWidth:  640,
 		Height:    768,
@@ -40,8 +42,6 @@ func main() {
 			TitleBar:                application.MacTitleBarDefault,
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
-		URL:              "/",
-		Title:            "Fapesnap",
 	})
 
 	err := app.Run()

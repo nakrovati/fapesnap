@@ -3,11 +3,11 @@ Version=1.0
 Name=Fapesnap
 Comment=Nudes downloader
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/ %u
+Exec=/usr/local/bin/fapesnap %u
 Terminal=false
 Type=Application
-Icon=
+Icon=fapesnap
 Categories=Utility;
-StartupWMClass=
+StartupWMClass=fapesnap
 
  

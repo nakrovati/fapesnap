@@ -7,7 +7,7 @@
 		<key>CFBundleExecutable</key>
 		<string>fapesnap</string>
 		<key>CFBundleGetInfoString</key>
-		<string>This is a comment</string>
+		<string>(c) 2026 Fapesnap</string>
 		<key>CFBundleIdentifier</key>
 		<string>com.github.nakrovati.fapesnap.dev</string>
 		<key>CFBundleName</key>

@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 tasks:
   go:mod:tidy:
@@ -9,6 +9,10 @@ tasks:
 
   install:frontend:deps:
     summary: Install frontend dependencies
+    cmds:
+      - task: install:frontend:deps:{{.PACKAGE_MANAGER}}
+
+  install:frontend:deps:npm:
     dir: frontend
     sources:
       - package.json
@@ -21,8 +25,48 @@ tasks:
     cmds:
       - npm install
 
+  install:frontend:deps:bun:
+    dir: frontend
+    sources:
+      - package.json
+      - bun.lock
+      - bun.lockb
+    generates:
+      - node_modules
+    preconditions:
+      - sh: bun --version
+        msg: "bun not found"
+    cmds:
+      - bun install
+
+  install:frontend:deps:pnpm:
+    dir: frontend
+    sources:
+      - package.json
+      - pnpm-lock.yaml
+    generates:
+      - node_modules
+    preconditions:
+      - sh: pnpm --version
+        msg: "pnpm not found"
+    cmds:
+      - pnpm install
+
+  install:frontend:deps:yarn:
+    dir: frontend
+    sources:
+      - package.json
+      - yarn.lock
+    status:
+      - test -d node_modules || test -f .pnp.cjs
+    preconditions:
+      - sh: yarn --version
+        msg: "yarn not found"
+    cmds:
+      - yarn install
+
   build:frontend:
-    label: build:frontend (DEV={{.DEV}})
+    label: build:frontend (DEV={{.DEV}} RUNNER={{.PACKAGE_MANAGER}})
     summary: Build the frontend project
     dir: frontend
     sources:
@@ -36,12 +80,51 @@ tasks:
         vars:
           BUILD_FLAGS:
             ref: .BUILD_FLAGS
+          OBFUSCATED:
+            ref: .OBFUSCATED
     cmds:
-      - npm run {{.BUILD_COMMAND}} -q
+      - task: frontend:run
+        vars:
+          SCRIPT: '{{if eq .DEV "true"}}build:dev{{else}}build{{end}}'
     env:
       PRODUCTION: '{{if eq .DEV "true"}}false{{else}}true{{end}}'
+
+  frontend:run:
+    summary: Run a frontend script with selected runner
+    cmds:
+      - task: frontend:run:{{.PACKAGE_MANAGER}}
+        vars:
+          SCRIPT: "{{.SCRIPT}}"
     vars:
-      BUILD_COMMAND: '{{if eq .DEV "true"}}build:dev{{else}}build{{end}}'
+      SCRIPT: "{{.SCRIPT}}"
+
+  frontend:run:npm:
+    dir: frontend
+    cmds:
+      - npm run {{.SCRIPT}} -q
+    vars:
+      SCRIPT: "{{.SCRIPT}}"
+
+  frontend:run:yarn:
+    dir: frontend
+    cmds:
+      - yarn {{.SCRIPT}}
+    vars:
+      SCRIPT: "{{.SCRIPT}}"
+
+  frontend:run:pnpm:
+    dir: frontend
+    cmds:
+      - pnpm run {{.SCRIPT}}
+    vars:
+      SCRIPT: "{{.SCRIPT}}"
+
+  frontend:run:bun:
+    dir: frontend
+    cmds:
+      - bun run {{.SCRIPT}}
+    vars:
+      SCRIPT: "{{.SCRIPT}}"
 
   frontend:vendor:puppertino:
     summary: Fetches Puppertino CSS into frontend/public for consistent mobile styling
@@ -78,6 +161,8 @@ tasks:
           sed -E -i'' 's/class=\"btn\"/class=\"p-btn p-prim-col\"/g' "$INDEX_HTML" || true
         fi
 
+
+
   generate:bindings:
     label: generate:bindings (BUILD_FLAGS={{.BUILD_FLAGS}})
     summary: Generates bindings for the frontend
@@ -86,14 +171,14 @@ tasks:
     sources:
       - "**/*.[jt]s"
       - exclude: frontend/**/*
-      - frontend/bindings/**/* # Rerun when switching between dev/production mode causes changes in output
+      - frontend/bindings/**/*  # Rerun when switching between dev/production mode causes changes in output
       - "**/*.go"
       - go.mod
       - go.sum
     generates:
       - frontend/bindings/**/*
     cmds:
-      - wails3 generate bindings -f '{{.BUILD_FLAGS}}' -clean=true
+      - wails3 generate bindings -f '{{.BUILD_FLAGS}}' -clean=true{{if eq .OBFUSCATED "true"}} -obfuscated{{end}}
 
   generate:icons:
     summary: Generates Windows `.ico` and Mac `.icns` from an image; on macOS, `-iconcomposerinput appicon.icon -macassetdir darwin` also produces `Assets.car` from a `.icon` file (skipped on other platforms).
@@ -109,11 +194,30 @@ tasks:
 
   dev:frontend:
     summary: Runs the frontend in development mode
-    dir: frontend
     deps:
       - task: install:frontend:deps
     cmds:
-      - npm run dev
+      - task: frontend:dev:{{.PACKAGE_MANAGER}}
+
+  frontend:dev:npm:
+    dir: frontend
+    cmds:
+      - npm run dev -- --port {{.VITE_PORT}} --strictPort
+
+  frontend:dev:yarn:
+    dir: frontend
+    cmds:
+      - yarn dev --port {{.VITE_PORT}} --strictPort
+
+  frontend:dev:pnpm:
+    dir: frontend
+    cmds:
+      - pnpm dev --port {{.VITE_PORT}} --strictPort
+
+  frontend:dev:bun:
+    dir: frontend
+    cmds:
+      - bun run dev --port {{.VITE_PORT}} --strictPort
 
   update:build-assets:
     summary: Updates the build assets
@@ -198,13 +302,13 @@ tasks:
   ios:run:device:
     summary: Build, install, and launch on a physical iPhone using Apple tools (xcodebuild/devicectl)
     vars:
-      PROJECT: "{{.PROJECT}}" # e.g., build/ios/xcode/<YourProject>.xcodeproj
-      SCHEME: "{{.SCHEME}}" # e.g., ios.dev
+      PROJECT: '{{.PROJECT}}'   # e.g., build/ios/xcode/<YourProject>.xcodeproj
+      SCHEME: '{{.SCHEME}}'     # e.g., ios.dev
       CONFIG: '{{.CONFIG | default "Debug"}}'
       DERIVED: '{{.DERIVED | default "build/ios/DerivedData"}}'
-      UDID: "{{.UDID}}" # from `task ios:device:list`
-      BUNDLE_ID: "{{.BUNDLE_ID}}" # e.g., com.yourco.wails.ios.dev
-      TEAM_ID: "{{.TEAM_ID}}" # optional, if your project is not already set up for signing
+      UDID: '{{.UDID}}'         # from `task ios:device:list`
+      BUNDLE_ID: '{{.BUNDLE_ID}}' # e.g., com.yourco.wails.ios.dev
+      TEAM_ID: '{{.TEAM_ID}}'   # optional, if your project is not already set up for signing
     preconditions:
       - sh: xcrun -f xcodebuild
         msg: "xcodebuild not found. Please install Xcode."

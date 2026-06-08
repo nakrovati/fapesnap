@@ -1,5 +1,11 @@
 version: "3"
 
+vars:
+  APP_NAME: "fapesnap"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
+  VITE_PORT: "{{.WAILS_VITE_PORT | default 9245}}"
+
 includes:
   common: ./build/Taskfile.yml
   windows: ./build/windows/Taskfile.yml
@@ -7,11 +13,6 @@ includes:
   linux: ./build/linux/Taskfile.yml
   ios: ./build/ios/Taskfile.yml
   android: ./build/android/Taskfile.yml
-
-vars:
-  APP_NAME: "fapesnap"
-  BIN_DIR: "bin"
-  VITE_PORT: "{{.WAILS_VITE_PORT | default 9245}}"
 
 tasks:
   build:

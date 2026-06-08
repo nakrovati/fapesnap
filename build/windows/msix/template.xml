@@ -21,16 +21,16 @@
         PackageDescription="Nudes downloader">
         <Capabilities>
             <Capability Name="runFullTrust" />
-            
+
         </Capabilities>
         <Applications>
             <Application
-                Id="github.com/nakrovati/fapesnap"
+                Id="com.github.nakrovati.fapesnap"
                 Description="Nudes downloader"
                 DisplayName="Fapesnap"
-                ExecutableName="fapesnap"
+                ExecutableName="wails3"
                 EntryPoint="Windows.FullTrustApplication">
-                
+
             </Application>
         </Applications>
         <Resources>
