@@ -4,8 +4,8 @@ set -e
 # Build configuration
 APP_NAME="fapesnap"
 BUNDLE_ID="com.github.nakrovati.fapesnap"
-VERSION="2.2.3"
-BUILD_NUMBER="2.2.3"
+VERSION="2.2.4"
+BUILD_NUMBER="2.2.4"
 BUILD_DIR="build/ios"
 TARGET="simulator"
 

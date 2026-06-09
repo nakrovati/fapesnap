@@ -14,7 +14,7 @@
     !define INFO_PRODUCTNAME "Fapesnap"
 !endif
 !ifndef INFO_PRODUCTVERSION
-    !define INFO_PRODUCTVERSION "2.2.3"
+    !define INFO_PRODUCTVERSION "2.2.4"
 !endif
 !ifndef INFO_COPYRIGHT
     !define INFO_COPYRIGHT "(c) 2026, Fapesnap"
