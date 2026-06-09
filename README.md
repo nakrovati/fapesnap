@@ -10,7 +10,7 @@ Provider list
 
 ## Usage
 
-Open the app, enter a collection name such as username in Fapello or album ID for Bunkr, select the provider and choose to download the photos/videos or view them first.
+Open the app, paste a link to the user's profile or their username (for Fapodrop and Fapello) or a link to an album or album ID (for Bunkr), select the appropriate provider, and choose "Download" if you want to download the files immediately, or "Preview" to preview them.
 
 ![Application interface](./assets/fapesnap-interface.png)
 
