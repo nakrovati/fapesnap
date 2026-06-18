@@ -19,10 +19,10 @@ Unicode true
 ####
 ## The following information is taken from the wails_tools.nsh file, but they can be overwritten here.
 ####
-## !define INFO_PROJECTNAME    "my-project" # Default "fapesnap"
+## !define INFO_PROJECTNAME    "my-project" # Default "Fapesnap"
 ## !define INFO_COMPANYNAME    "My Company" # Default "Fapesnap"
 ## !define INFO_PRODUCTNAME    "My Product Name" # Default "Fapesnap"
-## !define INFO_PRODUCTVERSION "1.0.0"     # Default "2.2.3"
+## !define INFO_PRODUCTVERSION "1.0.0"     # Default "2.2.4"
 ## !define INFO_COPYRIGHT      "(c) Now, My Company" # Default "(c) 2026, Fapesnap"
 ###
 ## !define PRODUCT_EXECUTABLE  "Application.exe"      # Default "${INFO_PROJECTNAME}.exe"

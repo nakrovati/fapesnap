@@ -1,5 +1,5 @@
 import { AppService } from "$bindings/index";
-import { Media } from "$bindings/internal/providers/models";
+import { type Media } from "$bindings/internal/providers/models";
 import { providers } from "$lib/shared/constants";
 import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";
@@ -71,6 +71,7 @@ export async function previewMediaItems() {
 
 	try {
 		const mediaItems = await AppService.GetMediaItems(collectionInput, providerName);
+		if (!mediaItems) return;
 
 		mediaStore.mediaItems = mediaItems.map((media) => ({
 			...media,

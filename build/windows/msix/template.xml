@@ -17,7 +17,7 @@
         PackageDisplayName="Fapesnap"
         PublisherName="CN=Fapesnap"
         PublisherDisplayName="Fapesnap"
-        Version="2.2.3.0"
+        Version="2.2.4.0"
         PackageDescription="Nudes downloader">
         <Capabilities>
             <Capability Name="runFullTrust" />
@@ -28,7 +28,7 @@
                 Id="com.github.nakrovati.fapesnap"
                 Description="Nudes downloader"
                 DisplayName="Fapesnap"
-                ExecutableName="wails3"
+                ExecutableName="fapesnap"
                 EntryPoint="Windows.FullTrustApplication">
 
             </Application>
