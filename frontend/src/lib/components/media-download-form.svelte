@@ -97,7 +97,7 @@
 				onValueChange={handleProviderChange}
 				type="single"
 			>
-				<Select.Trigger class="w-45">
+				<Select.Trigger class="w-34 sm:w-45">
 					{selectedProvider.label}
 				</Select.Trigger>
 				<Select.Content>

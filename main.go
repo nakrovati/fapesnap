@@ -32,10 +32,10 @@ func main() {
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Fapesnap",
 		URL:       "/",
-		Width:     1024,
-		MinWidth:  640,
-		Height:    768,
-		MinHeight: 480,
+		Width:     1000,
+		Height:    618,
+		MinWidth:  400,
+		MinHeight: 300,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
