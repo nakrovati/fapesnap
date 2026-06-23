@@ -1,10 +1,10 @@
 {
 	"fixed": {
-		"file_version": "2.2.4"
+		"file_version": "2.2.5-beta.1"
 	},
 	"info": {
 		"0000": {
-			"ProductVersion": "2.2.4",
+			"ProductVersion": "2.2.5-beta.1",
 			"CompanyName": "Fapesnap",
 			"FileDescription": "Nudes downloader",
 			"LegalCopyright": "(c) 2026, Fapesnap",
