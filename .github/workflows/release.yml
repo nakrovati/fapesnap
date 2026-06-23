@@ -98,6 +98,15 @@ jobs:
         with:
           path: artifacts
 
+      - name: Detect prerelease
+        id: prerelease
+        run: |
+          if [[ "${GITHUB_REF_NAME}" =~ (alpha|beta|rc) ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate Changelog
         id: github_release
         uses: mikepenz/release-changelog-builder@v6
@@ -135,4 +144,5 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           body: ${{ steps.github_release.outputs.changelog }}
+          prerelease: ${{ steps.prerelease.outputs.value == 'true' }}
           files: artifacts/**/*
