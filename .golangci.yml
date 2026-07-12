@@ -15,6 +15,7 @@ linters:
     - funlen
     - dupl
     - lll
+    - noinlineerr
   settings:
     varnamelen:
       ignore-decls:
@@ -22,6 +23,10 @@ linters:
         - i int
         - wg sync.WaitGroup
         - e *colly.HTMLElement
+        - gh *github.Provider
+        - mu sync.Mutex
+        - mu sync.RWMutex
+        - t *time.Timer
   exclusions:
     paths:
       - "assets/"
@@ -29,3 +34,7 @@ linters:
       - "bin/"
       - "build/"
       - "frontend/"
+    rules:
+      - path: _test\.go
+        linters:
+          - goconst

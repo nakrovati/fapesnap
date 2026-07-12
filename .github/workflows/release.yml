@@ -27,7 +27,7 @@ jobs:
           - os: macos-latest
             goos: darwin
             goarch: arm64
-            artifact: fapesnap-macos-arm64.app.zip
+            artifact: fapesnap-darwin-arm64.app.zip
           - os: windows-latest
             goos: windows
             goarch: amd64

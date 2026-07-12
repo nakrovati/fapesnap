@@ -1,5 +1,6 @@
+import type { Media } from "$bindings/internal/providers/models";
+
 import { AppService } from "$bindings/index";
-import { type Media } from "$bindings/internal/providers/models";
 import { providers } from "$lib/shared/constants";
 import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";

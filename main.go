@@ -5,11 +5,15 @@ import (
 	_ "embed"
 	"log"
 
+	"github.com/nakrovati/fapesnap/internal/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
+
+//go:embed build/config.yml
+var buildConfig embed.FS
 
 func main() {
 	// Create a new Wails application by providing the necessary options.
@@ -27,7 +31,18 @@ func main() {
 		},
 	})
 
-	app.RegisterService(application.NewService(NewAppService(app)))
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buildCfg, err := config.LoadBuildConfig(buildConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.RegisterService(application.NewService(NewAppService(app, cfg)))
+	app.RegisterService(application.NewService(NewUpdateService(app, cfg, buildCfg)))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Fapesnap",
@@ -44,7 +59,7 @@ func main() {
 		BackgroundColour: application.NewRGB(27, 38, 54),
 	})
 
-	err := app.Run()
+	err = app.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
