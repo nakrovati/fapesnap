@@ -189,8 +189,16 @@ func (p *FapodropProvider) getMedia(mediaID string, username string) (Media, err
 }
 
 func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error) {
-	firstSymbol := name[0]
-	secondSymbol := name[1]
+	firstSymbol := string(name[0])
+	secondSymbol := string(name[1])
+
+	if _, err := strconv.Atoi(firstSymbol); err == nil {
+    	firstSymbol = "-"
+	}
+
+	if _, err := strconv.Atoi(secondSymbol); err == nil {
+    	secondSymbol = "-"
+	}
 
 	mediaURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
 	if err != nil {
@@ -201,9 +209,17 @@ func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error)
 }
 
 func (p *FapodropProvider) buildThumbnailURL(baseURL string, name string) (string, error) {
-	firstSymbol := name[0]
-	secondSymbol := name[1]
+	firstSymbol := string(name[0])
+	secondSymbol := string(name[1])
 
+	if _, err := strconv.Atoi(firstSymbol); err == nil {
+    	firstSymbol = "-"
+	}
+
+	if _, err := strconv.Atoi(secondSymbol); err == nil {
+    	secondSymbol = "-"
+	}
+	
 	mediaThumbnailURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "thumbnails")
 	if err != nil {
 		return "", fmt.Errorf("build thumbnail url failed: %w", err)
