@@ -27,7 +27,7 @@ func (p *BunkrProvider) FetchMediaItems(collectionSlug string) ([]Media, error) 
 	err := p.fetchAlbumPage(collectionSlug, &mediaItems)
 	if err != nil {
 		if errors.Is(err, ErrVisitNotFound) {
-			return nil, fmt.Errorf("Profile not found: %s", collectionSlug)
+			return nil, fmt.Errorf("profile not found: %s", collectionSlug)
 		}
 
 		return []Media{}, err
@@ -80,6 +80,7 @@ func (p *BunkrProvider) GetMediaURL(pageURL string, collectionSlug string) (stri
 	})
 
 	err := c.Visit(pageURL)
+
 	if visitErr != nil {
 		return "", visitErr
 	}
@@ -112,6 +113,7 @@ func (p *BunkrProvider) fetchAlbumPage(collectionSlug string, mediaItems *[]Medi
 	})
 
 	err = c.Visit(albumURL)
+
 	if visitErr != nil {
 		return visitErr
 	}

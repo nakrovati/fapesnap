@@ -27,10 +27,10 @@ func (p *FapodropProvider) FetchMediaItems(collectionSlug string) ([]Media, erro
 	recentMediaID, err := p.getRecentMediaID(collectionSlug)
 	if err != nil {
 		if errors.Is(err, ErrVisitNotFound) {
-			return []Media{}, fmt.Errorf("Profile not found: %s", collectionSlug)
+			return []Media{}, fmt.Errorf("profile not found: %s", collectionSlug)
 		}
 
-		return []Media{}, fmt.Errorf("Failed to get recent media ID: %w", err)
+		return []Media{}, fmt.Errorf("failed to get recent media ID: %w", err)
 	}
 
 	minMediaID := 1
@@ -70,7 +70,7 @@ func (p *FapodropProvider) GetCollectionFromURL(inputURL string) (string, error)
 	parts := strings.Split(inputURL, "/")
 
 	if len(parts) < 4 || parts[len(parts)-1] == "" {
-		return "", errors.New("Invalid collection url")
+		return "", errors.New("invalid collection url")
 	}
 
 	return parts[len(parts)-1], nil
@@ -104,6 +104,7 @@ func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 
 	isFound := false
 	recentMediaID := 0
+
 	var visitErr error
 
 	c.OnHTML(fmt.Sprintf(".one-pack a[href^='/%s']", username), func(e *colly.HTMLElement) {
@@ -125,6 +126,7 @@ func (p *FapodropProvider) getRecentMediaID(username string) (int, error) {
 	})
 
 	err = c.Visit(userPageURL)
+
 	if visitErr != nil {
 		return 0, visitErr
 	}
@@ -193,14 +195,14 @@ func (p *FapodropProvider) buildURL(baseURL string, name string) (string, error)
 	secondSymbol := string(name[1])
 
 	if _, err := strconv.Atoi(firstSymbol); err == nil {
-    	firstSymbol = "-"
+		firstSymbol = "-"
 	}
 
 	if _, err := strconv.Atoi(secondSymbol); err == nil {
-    	secondSymbol = "-"
+		secondSymbol = "-"
 	}
 
-	mediaURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "photo")
+	mediaURL, err := url.JoinPath(baseURL, "images", firstSymbol, secondSymbol, name, "1", "photo")
 	if err != nil {
 		return "", fmt.Errorf("build url failed: %w", err)
 	}
@@ -213,14 +215,14 @@ func (p *FapodropProvider) buildThumbnailURL(baseURL string, name string) (strin
 	secondSymbol := string(name[1])
 
 	if _, err := strconv.Atoi(firstSymbol); err == nil {
-    	firstSymbol = "-"
+		firstSymbol = "-"
 	}
 
 	if _, err := strconv.Atoi(secondSymbol); err == nil {
-    	secondSymbol = "-"
+		secondSymbol = "-"
 	}
-	
-	mediaThumbnailURL, err := url.JoinPath(baseURL, "images", string(firstSymbol), string(secondSymbol), name, "1", "thumbnails")
+
+	mediaThumbnailURL, err := url.JoinPath(baseURL, "images", firstSymbol, secondSymbol, name, "1", "thumbnails")
 	if err != nil {
 		return "", fmt.Errorf("build thumbnail url failed: %w", err)
 	}

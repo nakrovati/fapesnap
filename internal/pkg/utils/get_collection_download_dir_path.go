@@ -21,7 +21,7 @@ func GetCollectionDownloadDir(
 
 	collectionDir := filepath.Join(baseDir, providerName, collectionSlug)
 
-	if err := os.MkdirAll(collectionDir, 0755); err != nil {
+	if err := os.MkdirAll(collectionDir, 0750); err != nil {
 		return "", fmt.Errorf("failed to create download directory: %w", err)
 	}
 

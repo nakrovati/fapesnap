@@ -70,9 +70,11 @@ func (d *Downloader) DownloadMediaItems(
 
 	jobs := make(chan providers.Media)
 
-	var wg sync.WaitGroup
-	var downloadedMediaCount int64
-	var failedMediaCount int64
+	var (
+		wg                   sync.WaitGroup
+		downloadedMediaCount int64
+		failedMediaCount     int64
+	)
 
 	worker := func() {
 		for media := range jobs {
@@ -156,7 +158,10 @@ func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir
 
 		return fmt.Errorf("http request failed: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	switch resp.StatusCode {
 	case http.StatusOK:

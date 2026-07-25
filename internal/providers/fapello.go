@@ -33,7 +33,7 @@ func (p *FapelloProvider) FetchMediaItems(collectionSlug string) ([]Media, error
 		found, err := p.fetchProfilePage(pageURL, collectionSlug, &mediaItems)
 		if err != nil {
 			if errors.Is(err, ErrVisitNotFound) {
-				return nil, fmt.Errorf("Profile not found: %s", collectionSlug)
+				return nil, fmt.Errorf("profile not found: %s", collectionSlug)
 			}
 
 			return nil, err
@@ -102,6 +102,7 @@ func (p *FapelloProvider) GetMediaURL(pageURL string, collectionSlug string) (st
 	})
 
 	err := c.Visit(pageURL)
+
 	if visitErr != nil {
 		return "", visitErr
 	}
@@ -116,7 +117,8 @@ func (p *FapelloProvider) GetMediaURL(pageURL string, collectionSlug string) (st
 func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug string, mediaItems *[]Media) (int, error) {
 	c := colly.NewCollector()
 
-	found := 0         // Page load requests (/ajax/model/...) return a 200 status code
+	found := 0 // Page load requests (/ajax/model/...) return a 200 status code
+
 	var visitErr error //
 
 	c.OnHTML(
@@ -138,6 +140,7 @@ func (p *FapelloProvider) fetchProfilePage(targetURL string, collectionSlug stri
 	})
 
 	err := c.Visit(targetURL)
+
 	if visitErr != nil {
 		return 0, visitErr
 	}
