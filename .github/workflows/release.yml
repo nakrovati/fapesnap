@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
@@ -14,24 +15,30 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-24.04
             goos: linux
             goarch: amd64
             artifact: fapesnap-linux-amd64.tar.gz
+
           - os: ubuntu-24.04-arm
             goos: linux
             goarch: arm64
             artifact: fapesnap-linux-arm64.tar.gz
+
           - os: macos-latest
             goos: darwin
             goarch: arm64
             artifact: fapesnap-darwin-arm64.app.zip
+            dmg: fapesnap-darwin-arm64.dmg
+
           - os: windows-latest
             goos: windows
             goarch: amd64
             artifact: fapesnap-windows-amd64.exe
+
           - os: windows-latest
             goos: windows
             goarch: arm64
@@ -43,25 +50,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v7
+      - name: Setup Go
+        uses: actions/setup-go@v7
         with:
-          go-version-file: "go.mod"
+          go-version-file: go.mod
           cache: true
 
-      - uses: actions/setup-node@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: "npm"
-          cache-dependency-path: "frontend/package-lock.json"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install linux dependencies
+      - name: Install Linux dependencies
         if: matrix.goos == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libgtk-4-dev \
+            libwebkitgtk-6.0-dev
 
       - name: Install Wails CLI
-        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
 
       - name: Install Task
         uses: go-task/setup-task@v2
@@ -69,40 +82,63 @@ jobs:
       - name: Build
         run: wails3 build GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
 
-      - name: Package binaries
+      - name: Package macOS DMG
         if: matrix.goos == 'darwin'
-        run: wails3 package
-
-      - name: Archive assets
-        shell: bash
         run: |
-          if [ "${{ matrix.goos }}" == "linux" ]; then
-            tar -czf ${{ matrix.artifact }} -C bin/ fapesnap
-          elif [ "${{ matrix.goos }}" == "darwin" ]; then
-            zip -ry ${{ matrix.artifact }} bin/fapesnap.app
-          else
-            cp bin/fapesnap.exe ${{ matrix.artifact }}
-          fi
+          wails3 task darwin:package:dmg
+          mv bin/fapesnap.dmg "${{ matrix.dmg }}"
 
-      - name: Upload artifact
+      - name: Archive macOS app
+        if: matrix.goos == 'darwin'
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            bin/fapesnap.app \
+            "${{ matrix.artifact }}"
+
+      - name: Archive Linux binary
+        if: matrix.goos == 'linux'
+        run: tar -czf "${{ matrix.artifact }}" -C bin fapesnap
+
+      - name: Copy Windows binary
+        if: matrix.goos == 'windows'
+        shell: bash
+        run: cp bin/fapesnap.exe "${{ matrix.artifact }}"
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.artifact }}
+          name: fapesnap-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload macOS DMG
+        if: matrix.goos == 'darwin'
+        uses: actions/upload-artifact@v7
+        with:
+          name: fapesnap-${{ matrix.goos }}-${{ matrix.goarch }}.dmg
+          path: ${{ matrix.dmg }}
+          if-no-files-found: error
+          retention-days: 1
 
   release:
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - uses: actions/download-artifact@v8
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
       - name: Detect prerelease
         id: prerelease
+        shell: bash
         run: |
           if [[ "${GITHUB_REF_NAME}" =~ (alpha|beta|rc) ]]; then
             echo "value=true" >> "$GITHUB_OUTPUT"
@@ -122,16 +158,16 @@ jobs:
               "commit_template": "- #{{MERGE_SHA}} #{{TITLE}}",
               "categories": [
                 {
-                    "title": "## ✨ Features",
-                    "labels": ["feat", "feature"]
+                  "title": "## ✨ Features",
+                  "labels": ["feat", "feature"]
                 },
                 {
-                    "title": "## 🔧 Fixes",
-                    "labels": ["fix", "bug"]
+                  "title": "## 🔧 Fixes",
+                  "labels": ["fix", "bug"]
                 },
                 {
-                    "title": "## 📦 Other",
-                    "labels": []
+                  "title": "## 📦 Other",
+                  "labels": []
                 }
               ],
               "label_extractor": [
@@ -143,7 +179,7 @@ jobs:
               ]
             }
 
-      - name: Update release (Update the release created by wails-build-action)
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           body: ${{ steps.github_release.outputs.changelog }}
