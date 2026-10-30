@@ -1,6 +1,7 @@
 <script lang="ts">
-	import * as Select from "$lib/components/ui/select";
 	import { setMode, userPrefersMode } from "mode-watcher";
+
+	import * as Select from "#lib/components/ui/select/index.ts";
 
 	type Mode = "dark" | "light" | "system";
 	let currentMode = $derived(userPrefersMode.current);

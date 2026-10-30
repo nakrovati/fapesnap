@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { ClassValue } from "svelte/elements";
 
-	import MediaGalleryCard from "$lib/components/media-gallery-card.svelte";
-	import { mediaStore } from "$lib/stores/media-store.svelte";
-	import { cn } from "$lib/utils";
+	import MediaGalleryCard from "#lib/components/media-gallery-card.svelte";
+	import { mediaStore } from "#lib/stores/media-store.svelte.ts";
+	import { cn } from "#lib/utils.ts";
 
 	const { class: klass }: { class?: ClassValue } = $props();
 </script>

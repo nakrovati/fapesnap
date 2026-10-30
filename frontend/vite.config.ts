@@ -16,13 +16,7 @@ export default defineConfig({
 			adapter: adapter({
 				pages: "dist",
 				assets: "dist",
-				fallback: undefined,
-				precompress: false,
-				strict: true,
 			}),
-			alias: {
-				"$bindings/*": "bindings/github.com/nakrovati/fapesnap/*",
-			},
 		}),
 		wails("./bindings"),
 	],

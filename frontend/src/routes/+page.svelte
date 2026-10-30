@@ -1,6 +1,6 @@
 <script lang="ts">
-	import MediaDownloadForm from "$lib/components/media-download-form.svelte";
-	import MediaGallery from "$lib/components/media-gallery.svelte";
+	import MediaDownloadForm from "#lib/components/media-download-form.svelte";
+	import MediaGallery from "#lib/components/media-gallery.svelte";
 </script>
 
 <MediaDownloadForm />

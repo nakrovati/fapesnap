@@ -1,4 +1,4 @@
-import { AppService, UpdateService } from "$bindings/index";
+import { AppService, UpdateService } from "#bindings";
 
 import type { PageLoad } from "./$types";
 

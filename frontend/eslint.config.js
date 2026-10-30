@@ -1,9 +1,8 @@
-import { includeIgnoreFile } from "@eslint/compat";
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import perfectionist from "eslint-plugin-perfectionist";
 import svelte from "eslint-plugin-svelte";
-import { defineConfig, globalIgnores } from "eslint/config";
+import { defineConfig, globalIgnores, includeIgnoreFile } from "eslint/config";
 import globals from "globals";
 import path from "node:path";
 import ts from "typescript-eslint";

@@ -1,9 +1,10 @@
-import type { Media } from "$bindings/internal/providers/models";
-
-import { AppService } from "$bindings/index";
-import { providers } from "$lib/shared/constants";
-import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";
+
+import type { Media } from "#bindings/internal/providers/models.ts";
+
+import { AppService } from "#bindings";
+import { providers } from "#lib/shared/constants.ts";
+import { parseWailsError } from "#lib/utils.ts";
 
 export type ExtendedMedia = Media & {
 	collectionInput: string;

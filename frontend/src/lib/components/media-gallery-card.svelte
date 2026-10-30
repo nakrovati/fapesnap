@@ -1,10 +1,5 @@
 <script lang="ts">
-	import { dev } from "$app/environment";
-	import { MediaType } from "$bindings/internal/providers/models";
-	import { Badge } from "$lib/components/ui/badge";
-	import { Button, buttonVariants } from "$lib/components/ui/button";
-	import * as Tooltip from "$lib/components/ui/tooltip";
-	import { downloadMedia, type ExtendedMedia } from "$lib/stores/media-store.svelte";
+	import { dev } from "$app/env";
 	import Check from "@lucide/svelte/icons/check";
 	import Clock3 from "@lucide/svelte/icons/clock-3";
 	import Download from "@lucide/svelte/icons/download";
@@ -13,6 +8,12 @@
 	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
 	import X from "@lucide/svelte/icons/x";
 	import { Browser } from "@wailsio/runtime";
+
+	import { MediaType } from "#bindings/internal/providers/models.ts";
+	import { Badge } from "#lib/components/ui/badge/index.ts";
+	import { Button, buttonVariants } from "#lib/components/ui/button/index.ts";
+	import * as Tooltip from "#lib/components/ui/tooltip/index.ts";
+	import { downloadMedia, type ExtendedMedia } from "#lib/stores/media-store.svelte.ts";
 
 	let { media }: { media: ExtendedMedia } = $props();
 

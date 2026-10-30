@@ -1,7 +1,8 @@
-import { AppService } from "$bindings/index";
-import { CheckInterval, type DownloadDir } from "$bindings/internal/config";
-import { parseWailsError } from "$lib/utils";
 import { toast } from "svelte-sonner";
+
+import { AppService } from "#bindings";
+import { CheckInterval, type DownloadDir } from "#bindings/internal/config/index.ts";
+import { parseWailsError } from "#lib/utils.ts";
 
 interface ConfigStore {
 	autoCheck: boolean;

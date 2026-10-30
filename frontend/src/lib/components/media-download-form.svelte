@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { StopTask } from "$bindings/appservice";
-	import { Button } from "$lib/components/ui/button";
-	import * as ButtonGroup from "$lib/components/ui/button-group";
-	import { Input } from "$lib/components/ui/input";
-	import * as Select from "$lib/components/ui/select";
-	import * as Tooltip from "$lib/components/ui/tooltip";
-	import { providers } from "$lib/shared/constants";
+	import { Events } from "@wailsio/runtime";
+	import { toast } from "svelte-sonner";
+
+	import { StopTask } from "#bindings/appservice.ts";
+	import * as ButtonGroup from "#lib/components/ui/button-group/index.ts";
+	import { Button } from "#lib/components/ui/button/index.ts";
+	import { Input } from "#lib/components/ui/input/index.ts";
+	import * as Select from "#lib/components/ui/select/index.ts";
+	import * as Tooltip from "#lib/components/ui/tooltip/index.ts";
+	import { providers } from "#lib/shared/constants.ts";
 	import {
 		downloadMediaItems,
 		mediaStore,
 		previewMediaItems,
-	} from "$lib/stores/media-store.svelte";
-	import { Events } from "@wailsio/runtime";
-	import { toast } from "svelte-sonner";
+	} from "#lib/stores/media-store.svelte.ts";
 
 	let selectedProvider = $derived(providers.find((p) => p.value === mediaStore.providerName)!);
 	let collectionTextFieldPlaceholder = $derived(

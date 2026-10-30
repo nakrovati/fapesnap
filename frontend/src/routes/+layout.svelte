@@ -1,11 +1,12 @@
 <script lang="ts">
 	import "./layout.css";
 	import { page } from "$app/state";
-	import favicon from "$lib/assets/favicon.svg";
-	import AppSidebar from "$lib/components/app-sidebar.svelte";
-	import * as Sidebar from "$lib/components/ui/sidebar";
-	import { Toaster } from "$lib/components/ui/sonner";
 	import { ModeWatcher } from "mode-watcher";
+
+	import favicon from "#lib/assets/favicon.svg";
+	import AppSidebar from "#lib/components/app-sidebar.svelte";
+	import * as Sidebar from "#lib/components/ui/sidebar/index.ts";
+	import { Toaster } from "#lib/components/ui/sonner/index.ts";
 
 	let { children } = $props();
 

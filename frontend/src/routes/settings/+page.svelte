@@ -1,23 +1,24 @@
 <script lang="ts">
-	import { UpdateService } from "$bindings/index";
-	import { CheckInterval } from "$bindings/internal/config";
-	import ThemeSelect from "$lib/components/theme-select.svelte";
-	import { Badge } from "$lib/components/ui/badge";
-	import { Button } from "$lib/components/ui/button";
-	import { Label } from "$lib/components/ui/label";
-	import * as Select from "$lib/components/ui/select";
-	import { Separator } from "$lib/components/ui/separator";
-	import { Switch } from "$lib/components/ui/switch";
-	import {
-		configStore,
-		handleSelectDownloadDirectory,
-		handleUnsetDownloadDir,
-	} from "$lib/stores/config-store.svelte";
-	import { parseWailsError } from "$lib/utils";
 	import FolderOpen from "@lucide/svelte/icons/folder-open";
 	import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 	import X from "@lucide/svelte/icons/x";
 	import { toast } from "svelte-sonner";
+
+	import { UpdateService } from "#bindings";
+	import { CheckInterval } from "#bindings/internal/config/index.ts";
+	import ThemeSelect from "#lib/components/theme-select.svelte";
+	import { Badge } from "#lib/components/ui/badge/index.ts";
+	import { Button } from "#lib/components/ui/button/index.ts";
+	import { Label } from "#lib/components/ui/label/index.ts";
+	import * as Select from "#lib/components/ui/select/index.ts";
+	import { Separator } from "#lib/components/ui/separator/index.ts";
+	import { Switch } from "#lib/components/ui/switch/index.ts";
+	import {
+		configStore,
+		handleSelectDownloadDirectory,
+		handleUnsetDownloadDir,
+	} from "#lib/stores/config-store.svelte.ts";
+	import { parseWailsError } from "#lib/utils.ts";
 
 	import type { PageProps } from "./$types";
 

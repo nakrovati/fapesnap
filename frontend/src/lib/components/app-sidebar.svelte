@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
-	import { KoFi } from "$lib/assets/icons";
-	import * as Sidebar from "$lib/components/ui/sidebar";
 	import DownloadIcon from "@lucide/svelte/icons/download";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import { Browser } from "@wailsio/runtime";
+
+	import { KoFi } from "#lib/assets/icons/index.ts";
+	import * as Sidebar from "#lib/components/ui/sidebar/index.ts";
 
 	const items = [
 		{ title: "Download media", url: "/", icon: DownloadIcon },
