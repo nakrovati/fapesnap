@@ -14,17 +14,55 @@ Open the app, paste a link to the user's profile or their username (for Fapodrop
 
 ![Application interface](./assets/fapesnap-interface.png)
 
+## Development
+
+Requirements: Go 1.27.3 or later and Bun.
+
+```sh
+bun install
+bun run dev
+```
+
+Generate the typed Go bindings after changing Go service methods or events:
+
+```sh
+bun run generate
+```
+
+Check and package the app with:
+
+```sh
+bun run check
+bun run build
+```
+
+## Automatic updates
+
+MyGo's signed auto-updates require the public key in `mygo.config.ts` to match
+the private signing key used during the build. Generate a key pair with
+`bunx mygo-cli keygen`. Keep `mygo-update.key` private and provide its contents
+as the `MYGO_UPDATER_PRIVATE_KEY` GitHub Actions secret. Releases and
+auto-updates are published from the `nakrovati/fapesnap-mygo` repository.
+Builds still upload installers when the signing key is not configured, but
+those builds will not self-update.
+
 ## Installation
 
-All releases are in the "releases" section at this link - <https://github.com/nakrovati/fapesnap/releases>.
+All releases are in the "releases" section at this link - <https://github.com/nakrovati/fapesnap-mygo/releases>.
 
-### Windows and Linux
+### Windows
 
-Simply download the appropriate build for your OS and processor architecture from the releases page, and then invoke the program via CMD.
+Download and run the matching Windows installer from the releases page.
+
+### Linux
+
+Download and install the matching Debian package, or use the Linux archive
+and its included `install.sh`.
 
 ### MacOS
 
-To use the program on macOS, you will need to manually allow the program to run through the settings.
+Download the disk image for your processor architecture. If macOS prevents
+the app from opening, you may need to allow it in system settings.
 
 > [!WARNING]
 > Allowing execution of macOS programs from unreliable sources is potentially dangerous. If you are afraid to allow execution of this program, download it on Windows or Linux.

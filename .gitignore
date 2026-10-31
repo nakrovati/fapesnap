@@ -1,25 +1,30 @@
-# Wails 3 dirs
-.task
-.wails
-bin
-frontend/dist
-frontend/node_modules
+node_modules/
+/dist/
+/build/
+/.mygo/
+/.svelte-kit/
+mygo_windows_*.syso
 
 # OS
 Thumbs.db
 .DS_Store
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
 
 # IDEs
 .vscode/*
 !.vscode/extensions.json
 .zed
 
-# MyGo artifacts
-/node_modules/
-/.svelte-kit/
-/dist/
-/.mygo/
-/build/SHA256SUMS
-/build/*-arm64/
-/build/*-amd64/
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
+# Wails 3 artifacts. Delete after migrating to MyGo
+/bin/
+/.task/
+/frontend/

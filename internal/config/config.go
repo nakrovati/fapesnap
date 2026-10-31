@@ -6,7 +6,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 //nolint:gochecknoglobals
@@ -37,10 +36,8 @@ func (i CheckInterval) IsValid() bool {
 
 type Updates struct {
 	AutoCheck            bool          `json:"autoCheck"`
-	CheckOnStartup       bool          `json:"checkOnStartup"`
 	CheckIntervalMinutes CheckInterval `json:"checkIntervalMinutes"`
 	IncludePrereleases   bool          `json:"includePrereleases"`
-	LastCheckedAt        *time.Time    `json:"lastCheckedAt"`
 }
 
 type Config struct {
@@ -48,17 +45,8 @@ type Config struct {
 	Updates     Updates     `json:"updates"`
 }
 
-type Info struct {
-	Version string `yaml:"version"`
-}
-
-type BuildConfig struct {
-	Info Info `yaml:"info"`
-}
-
 const (
 	defaultAutoCheck            = true
-	defaultCheckOnStartup       = false
 	defaultCheckIntervalMinutes = IntervalWeek
 	defaultPrereleaseEnabled    = false
 )
@@ -204,7 +192,6 @@ func defaultDownloadDir() (DownloadDir, error) {
 func defaultUpdates() Updates {
 	return Updates{
 		AutoCheck:            defaultAutoCheck,
-		CheckOnStartup:       defaultCheckOnStartup,
 		CheckIntervalMinutes: defaultCheckIntervalMinutes,
 		IncludePrereleases:   defaultPrereleaseEnabled,
 	}

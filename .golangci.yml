@@ -17,6 +17,23 @@ linters:
     - lll
     - noinlineerr
   settings:
+    exhaustruct_v5:
+      allow-empty-returns: true
+      ignore-patterns:
+        # std libs
+        - '^net/http\.Client$'
+        - '^net/http\.Cookie$'
+        - '^net/http\.Request$'
+        - '^net/http\.Response$'
+        - '^net/http\.Server$'
+        - '^net/http\.Transport$'
+        - '^net/url\.URL$'
+        - '^os/exec\.Cmd$'
+        - '^reflect\.StructField$'
+        # mygo
+        - '^github\.com/egoist/mygo\.WindowOptions$'
+        - '^github\.com/egoist/mygo/plugins/updater\.Options$'
+
     varnamelen:
       ignore-decls:
         - c *colly.Collector
@@ -27,13 +44,19 @@ linters:
         - mu sync.Mutex
         - mu sync.RWMutex
         - t *time.Timer
+
   exclusions:
     paths:
-      - "assets/"
-      - "task/"
-      - "bin/"
-      - "build/"
-      - "frontend/"
+      - .agents/
+      - .github/
+      - .mygo/
+      - .svelte-kit/
+      - .vscode/
+      - assets/
+      - build/
+      - dist/
+      - src/
+      - node_modules/
     rules:
       - path: _test\.go
         linters:
