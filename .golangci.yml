@@ -30,14 +30,10 @@ linters:
         - '^net/url\.URL$'
         - '^os/exec\.Cmd$'
         - '^reflect\.StructField$'
-        # wails
-        - '^github\.com/wailsapp/wails/v3/pkg/application\.Options$'
-        - '^github\.com/wailsapp/wails/v3/pkg/application\.AssetOptions$'
-        - '^github\.com/wailsapp/wails/v3/pkg/application\.MacOptions$'
-        - '^github\.com/wailsapp/wails/v3/pkg/application\.WebviewWindowOptions$'
-        - '^github\.com/wailsapp/wails/v3/pkg/application\.MacWindow$'
-        - '^github\.com/wailsapp/wails/v3/pkg/updater\.Config$'
-        - '^github\.com/wailsapp/wails/v3/pkg/updater/providers/github\.Config$'
+        # mygo
+        - '^github\.com/egoist/mygo\.WindowOptions$'
+        - '^github\.com/egoist/mygo\.OpenDialogOptions$'
+        - '^github\.com/egoist/mygo/plugins/updater\.Options$'
 
     varnamelen:
       ignore-decls:
@@ -52,13 +48,17 @@ linters:
 
   exclusions:
     paths:
+      - .agents/
       - .github/
-      - .task/
+      - .mygo/
+      - .svelte-kit/
       - .vscode/
       - assets/
-      - bin/
       - build/
-      - frontend/
+      - dist/
+      - src/
+      - resources/
+      - node_modules/
     rules:
       - path: _test\.go
         linters:

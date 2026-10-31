@@ -6,45 +6,36 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: write # the draft release, and the uploads to it
   pull-requests: read
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --draft --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
+          fi
+
   build:
+    needs: draft-release
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
-            goos: linux
-            goarch: amd64
-            artifact: fapesnap-linux-amd64.tar.gz
-
-          - os: ubuntu-24.04-arm
-            goos: linux
-            goarch: arm64
-            artifact: fapesnap-linux-arm64.tar.gz
-
-          - os: macos-latest
-            goos: darwin
-            goarch: arm64
-            artifact: fapesnap-darwin-arm64.app.zip
-            dmg: fapesnap-darwin-arm64.dmg
-
-          - os: windows-latest
-            goos: windows
-            goarch: amd64
-            artifact: fapesnap-windows-amd64.exe
-
-          - os: windows-latest
-            goos: windows
-            goarch: arm64
-            artifact: fapesnap-windows-arm64.exe
-
-    runs-on: ${{ matrix.os }}
+          - { name: macOS, os: macos-latest, platform: "darwin/arm64" }
+          - { name: Windows, os: ubuntu-latest, platform: "windows/amd64,windows/arm64" }
+          - { name: Linux, os: ubuntu-latest, platform: "linux/amd64,linux/arm64" }
 
     steps:
       - name: Checkout
@@ -55,70 +46,21 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: "26"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
-      - name: Install Linux dependencies
-        if: matrix.goos == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            pkg-config \
-            libgtk-4-dev \
-            libwebkitgtk-6.0-dev
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Install Wails CLI
-        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+      - name: Install NSIS, for the Windows installers
+        if: matrix.name == 'Windows' && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y nsis
 
-      - name: Install Task
-        uses: go-task/setup-task@v2
-
-      - name: Build
-        run: wails3 build GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
-
-      - name: Package macOS DMG
-        if: matrix.goos == 'darwin'
-        run: |
-          wails3 task darwin:package:dmg
-          mv bin/fapesnap.dmg "${{ matrix.dmg }}"
-
-      - name: Archive macOS app
-        if: matrix.goos == 'darwin'
-        run: |
-          ditto -c -k --sequesterRsrc --keepParent \
-            bin/fapesnap.app \
-            "${{ matrix.artifact }}"
-
-      - name: Archive Linux binary
-        if: matrix.goos == 'linux'
-        run: tar -czf "${{ matrix.artifact }}" -C bin fapesnap
-
-      - name: Copy Windows binary
-        if: matrix.goos == 'windows'
-        shell: bash
-        run: cp bin/fapesnap.exe "${{ matrix.artifact }}"
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: fapesnap-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ${{ matrix.artifact }}
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload macOS DMG
-        if: matrix.goos == 'darwin'
-        uses: actions/upload-artifact@v7
-        with:
-          name: fapesnap-${{ matrix.goos }}-${{ matrix.goarch }}.dmg
-          path: ${{ matrix.dmg }}
-          if-no-files-found: error
-          retention-days: 1
+      - name: Build and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+        run: bun run build -- -platform "${{ matrix.platform }}" -upload
 
   release:
     needs: build
@@ -129,11 +71,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: artifacts
 
       - name: Detect prerelease
         id: prerelease
@@ -183,4 +120,3 @@ jobs:
         with:
           body: ${{ steps.github_release.outputs.changelog }}
           prerelease: ${{ steps.prerelease.outputs.value == 'true' }}
-          files: artifacts/**/*

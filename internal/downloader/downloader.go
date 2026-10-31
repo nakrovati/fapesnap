@@ -15,10 +15,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/egoist/mygo"
 	"github.com/nakrovati/fapesnap/internal/config"
 	"github.com/nakrovati/fapesnap/internal/pkg/utils"
 	"github.com/nakrovati/fapesnap/internal/providers"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 var (
@@ -37,18 +37,29 @@ type DownloadBatchEvent struct {
 	Failed     int `json:"failed,omitempty"`
 }
 
+//nolint:gochecknoglobals // package-level event registry is required for external subscriptions.
+var (
+	DownloadBatchStarted   = mygo.NewEvent[struct{}]("download:batch-started")
+	DownloadBatchCompleted = mygo.NewEvent[DownloadBatchEvent]("download:batch-completed")
+	DownloadMediaStarted   = mygo.NewEvent[DownloadMediaEvent]("download:media-started")
+	DownloadMediaFailed    = mygo.NewEvent[DownloadMediaEvent]("download:media-failed")
+	DownloadMediaCompleted = mygo.NewEvent[DownloadMediaEvent]("download:media-completed")
+)
+
 type Downloader struct {
 	httpClient *http.Client
 	logger     *slog.Logger
-	event      *application.EventManager
 }
 
 type MediaURLResolver func(pageURL string) (string, error)
 
-func NewDownloader(logger *slog.Logger, event *application.EventManager) *Downloader {
+func NewDownloader(logger *slog.Logger) *Downloader {
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return &Downloader{
 		logger:     logger,
-		event:      event,
 		httpClient: newHTTPClient(),
 	}
 }
@@ -86,7 +97,7 @@ func (d *Downloader) DownloadMediaItems(
 		return fmt.Errorf("failed to get download directory: %w", err)
 	}
 
-	d.event.Emit("download:batch-started")
+	emitEvent(d.logger, DownloadBatchStarted, struct{}{})
 
 	jobs := make(chan providers.Media)
 
@@ -104,7 +115,7 @@ func (d *Downloader) DownloadMediaItems(
 
 				d.logger.Error("Failed to resolve media URL", "pageUrl", media.PageURL, "error", resolveErr)
 
-				d.event.Emit("download:media-failed", DownloadMediaEvent{
+				emitEvent(d.logger, DownloadMediaFailed, DownloadMediaEvent{
 					PageURL: media.PageURL,
 					Error:   resolveErr.Error(),
 				})
@@ -145,7 +156,7 @@ func (d *Downloader) DownloadMediaItems(
 
 	wg.Wait()
 
-	d.event.Emit("download:batch-completed", DownloadBatchEvent{
+	emitEvent(d.logger, DownloadBatchCompleted, DownloadBatchEvent{
 		Total:      len(mediaItems),
 		Downloaded: int(downloadedMediaCount),
 		Failed:     int(failedMediaCount),
@@ -171,13 +182,13 @@ func resolveMediaURLForItem(media providers.Media, resolver MediaURLResolver) (s
 }
 
 func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir string) error {
-	d.event.Emit("download:media-started", DownloadMediaEvent{
+	emitEvent(d.logger, DownloadMediaStarted, DownloadMediaEvent{
 		PageURL: pageURL,
 	})
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		d.event.Emit("download:media-failed", DownloadMediaEvent{
+		emitEvent(d.logger, DownloadMediaFailed, DownloadMediaEvent{
 			PageURL: pageURL,
 			Error:   err.Error(),
 		})
@@ -192,12 +203,11 @@ func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir
 		"Accept":          {"image/avif,image/webp,image/apng,image/*,*/*;q=0.8"},
 		"Accept-Language": {"en-US,en;q=0.9"},
 		"Referer":         {deriveReferer(url)},
-		"Connection":      {"keep-alive"},
 	}
 
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
-		d.event.Emit("download:media-failed", DownloadMediaEvent{
+		emitEvent(d.logger, DownloadMediaFailed, DownloadMediaEvent{
 			PageURL: pageURL,
 			Error:   err.Error(),
 		})
@@ -209,19 +219,29 @@ func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir
 		_ = resp.Body.Close()
 	}()
 
+	var statusErr error
+
 	switch resp.StatusCode {
 	case http.StatusOK:
-		// ok
 	case http.StatusForbidden:
-		return fmt.Errorf("forbidden (headers/cookies/hotlink): %d, %s", resp.StatusCode, url)
+		statusErr = fmt.Errorf("forbidden (headers/cookies/hotlink): %d, %s", resp.StatusCode, url)
 	case http.StatusNotFound:
-		return fmt.Errorf("media not found: %d, %s", resp.StatusCode, url)
+		statusErr = fmt.Errorf("media not found: %d, %s", resp.StatusCode, url)
 	default:
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		statusErr = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	if statusErr != nil {
+		emitEvent(d.logger, DownloadMediaFailed, DownloadMediaEvent{
+			PageURL: pageURL,
+			Error:   statusErr.Error(),
+		})
+
+		return statusErr
 	}
 
 	if err := d.SaveMedia(resp, url, dir); err != nil {
-		d.event.Emit("download:media-failed", DownloadMediaEvent{
+		emitEvent(d.logger, DownloadMediaFailed, DownloadMediaEvent{
 			PageURL: pageURL,
 			Error:   err.Error(),
 		})
@@ -229,11 +249,17 @@ func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir
 		return fmt.Errorf("save media: %w", err)
 	}
 
-	d.event.Emit("download:media-completed", DownloadMediaEvent{
+	emitEvent(d.logger, DownloadMediaCompleted, DownloadMediaEvent{
 		PageURL: pageURL,
 	})
 
 	return nil
+}
+
+func emitEvent[T any](logger *slog.Logger, event *mygo.Event[T], payload T) {
+	if err := event.Broadcast(payload); err != nil {
+		logger.Error("Failed to emit event", "event", event.Name(), "error", err)
+	}
 }
 
 func (d *Downloader) SaveMedia(resp *http.Response, src string, dir string) error {

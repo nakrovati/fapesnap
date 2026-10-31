@@ -1,66 +1,48 @@
 package main
 
 import (
-	"embed"
-	_ "embed"
 	"log"
+	"sync"
+	"time"
 
+	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 	"github.com/nakrovati/fapesnap/internal/config"
-	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/nakrovati/fapesnap/internal/downloader"
 )
 
-//go:embed all:frontend/dist
-var assets embed.FS
-
-//go:embed build/config.yml
-var buildConfig embed.FS
+var configMu sync.RWMutex
 
 func main() {
-	// Create a new Wails application by providing the necessary options.
-	// Variables 'Name' and 'Description' are for application metadata.
-	// 'Assets' configures the asset server with the 'FS' variable pointing to the frontend files.
-	// 'Bind' is a list of Go struct instances. The frontend has access to the methods of these instances.
-	// 'Mac' options tailor the application when running an macOS.
-	app := application.New(application.Options{
-		Name: "Fapesnap",
-		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
-		},
-		Mac: application.MacOptions{
-			ApplicationShouldTerminateAfterLastWindowClosed: true,
-		},
-	})
-
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	buildCfg, err := config.LoadBuildConfig(buildConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
+	appService := NewAppService(cfg, downloader.NewDownloader(nil), &configMu)
+	updateService := NewUpdateService(cfg, &configMu)
+	mygo.Use(updater.New(updater.Options{
+		Interval:               time.Duration(cfg.Updates.CheckIntervalMinutes) * time.Minute,
+		DisableAutomaticChecks: !cfg.Updates.AutoCheck,
+	}))
 
-	app.RegisterService(application.NewService(NewAppService(app, cfg)))
-	app.RegisterService(application.NewService(NewUpdateService(app, cfg, buildCfg)))
+	mygo.Updater.SetPrereleases(cfg.Updates.IncludePrereleases)
+	mygo.Bind(appService, updateService)
 
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:     "Fapesnap",
-		URL:       "/",
-		Width:     1000,
-		Height:    618,
-		MinWidth:  400,
-		MinHeight: 300,
-		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
-			Backdrop:                application.MacBackdropTranslucent,
-			TitleBar:                application.MacTitleBarDefault,
-		},
-		BackgroundColour: application.NewRGB(27, 38, 54),
+	mygo.App.WhenReady(func() {
+		mygo.NewWindow(mygo.WindowOptions{
+			Title:           "Fapesnap",
+			Width:           960,
+			Height:          640,
+			MinWidth:        400,
+			MinHeight:       300,
+			BackgroundColor: "light-dark(#ffffff, #0a0a0a)", // the page's --background in src/routes/layout.css
+			StateKey:        "main",
+			URL:             "/",
+		})
 	})
 
-	err = app.Run()
-	if err != nil {
+	if err := mygo.App.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
