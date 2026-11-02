@@ -1,17 +1,17 @@
 {
-	"fixed": {
-		"file_version": "2.4.0-rc.1",
-		"product_version": "2.4.0-rc.1"
-	},
-	"info": {
-		"0409": {
-			"FileVersion": "2.4.0-rc.1",
-			"ProductVersion": "2.4.0-rc.1",
-			"CompanyName": "Fapesnap",
-			"FileDescription": "Nudes downloader",
-			"LegalCopyright": "(c) 2026, Fapesnap",
-			"ProductName": "Fapesnap",
-			"Comments": "(c) 2026 Fapesnap"
-		}
-	}
+  "fixed": {
+    "file_version": "2.4.0-rc.2",
+    "product_version": "2.4.0-rc.2"
+  },
+  "info": {
+    "0409": {
+      "FileVersion": "2.4.0-rc.2",
+      "ProductVersion": "2.4.0-rc.2",
+      "CompanyName": "Fapesnap",
+      "FileDescription": "Nudes downloader",
+      "LegalCopyright": "(c) 2026, Fapesnap",
+      "ProductName": "Fapesnap",
+      "Comments": "(c) 2026 Fapesnap"
+    }
+  }
 }

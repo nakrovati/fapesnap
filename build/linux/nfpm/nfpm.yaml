@@ -6,7 +6,7 @@
 name: "fapesnap"
 arch: ${GOARCH}
 platform: "linux"
-version: "2.4.0-rc.1"
+version: "2.4.0-rc.2"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
