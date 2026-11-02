@@ -12,7 +12,7 @@ info:
   copyright: "(c) 2026, Fapesnap" # Copyright text
   comments: "(c) 2026 Fapesnap" # Comments
   version: "2.4.0-rc.1" # The application version
-  cfBundleIconName: "icons" # The macOS icon name in Assets.car icon bundles (optional)
+  # cfBundleIconName: "appicon" # The macOS icon name in Assets.car icon bundles (optional)
   #                               # Should match the name of your .icon file without the extension
   #                               # If not set and Assets.car exists, defaults to "appicon"
 

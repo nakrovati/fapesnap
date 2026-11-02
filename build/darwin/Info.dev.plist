@@ -9,7 +9,7 @@
 		<key>CFBundleIconFile</key>
 		<string>icons</string>
 		<key>CFBundleIconName</key>
-		<string>icons</string>
+		<string>appicon</string>
 		<key>CFBundleIdentifier</key>
 		<string>com.github.nakrovati.fapesnap</string>
 		<key>CFBundleName</key>

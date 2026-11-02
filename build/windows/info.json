@@ -1,9 +1,11 @@
 {
 	"fixed": {
-		"file_version": "2.4.0-rc.1"
+		"file_version": "2.4.0-rc.1",
+		"product_version": "2.4.0-rc.1"
 	},
 	"info": {
 		"0409": {
+			"FileVersion": "2.4.0-rc.1",
 			"ProductVersion": "2.4.0-rc.1",
 			"CompanyName": "Fapesnap",
 			"FileDescription": "Nudes downloader",
