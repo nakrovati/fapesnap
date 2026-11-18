@@ -1,5 +1,6 @@
 <script lang="ts">
 	import "./layout.css";
+	import "./styles.css";
 	import { page } from "$app/state";
 	import { ModeWatcher } from "mode-watcher";
 
