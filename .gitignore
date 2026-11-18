@@ -1,10 +1,9 @@
 # Wails 3 dirs
 .task
+.wails
 bin
 frontend/dist
 frontend/node_modules
-build/linux/appimage/build
-build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 
 # OS
 Thumbs.db
