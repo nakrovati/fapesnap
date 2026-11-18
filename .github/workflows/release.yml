@@ -54,7 +54,6 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-          cache: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -74,7 +73,7 @@ jobs:
             libwebkitgtk-6.0-dev
 
       - name: Install Wails CLI
-        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
 
       - name: Install Task
         uses: go-task/setup-task@v2

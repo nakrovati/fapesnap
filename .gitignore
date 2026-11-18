@@ -15,7 +15,12 @@ Thumbs.db
 !.vscode/extensions.json
 .zed
 
-# To use MyGo
+# MyGo artifacts
 /node_modules/
 /.svelte-kit/
 /dist/
+/.mygo/
+/build/SHA256SUMS
+/build/*-arm64/
+/build/*-amd64/
+
