@@ -186,6 +186,9 @@ func (p *FapelloProvider) parseCard(e *colly.HTMLElement, collectionSlug string)
 
 	if p.isVideoCard(e) {
 		media.Type = MediaTypeVideo
+		// A video's real URL cannot be derived from the card (getMedia builds a .jpg
+		// path), so leave it empty and let the downloader resolve it from the page.
+		media.URL = ""
 	} else {
 		media.Type = MediaTypeImage
 	}
