@@ -17,6 +17,28 @@ linters:
     - lll
     - noinlineerr
   settings:
+    exhaustruct_v5:
+      allow-empty-returns: true
+      ignore-patterns:
+        # std libs
+        - '^net/http\.Client$'
+        - '^net/http\.Cookie$'
+        - '^net/http\.Request$'
+        - '^net/http\.Response$'
+        - '^net/http\.Server$'
+        - '^net/http\.Transport$'
+        - '^net/url\.URL$'
+        - '^os/exec\.Cmd$'
+        - '^reflect\.StructField$'
+        # wails
+        - '^github\.com/wailsapp/wails/v3/pkg/application\.Options$'
+        - '^github\.com/wailsapp/wails/v3/pkg/application\.AssetOptions$'
+        - '^github\.com/wailsapp/wails/v3/pkg/application\.MacOptions$'
+        - '^github\.com/wailsapp/wails/v3/pkg/application\.WebviewWindowOptions$'
+        - '^github\.com/wailsapp/wails/v3/pkg/application\.MacWindow$'
+        - '^github\.com/wailsapp/wails/v3/pkg/updater\.Config$'
+        - '^github\.com/wailsapp/wails/v3/pkg/updater/providers/github\.Config$'
+
     varnamelen:
       ignore-decls:
         - c *colly.Collector
@@ -27,13 +49,16 @@ linters:
         - mu sync.Mutex
         - mu sync.RWMutex
         - t *time.Timer
+
   exclusions:
     paths:
-      - "assets/"
-      - "task/"
-      - "bin/"
-      - "build/"
-      - "frontend/"
+      - .github/
+      - .task/
+      - .vscode/
+      - assets/
+      - bin/
+      - build/
+      - frontend/
     rules:
       - path: _test\.go
         linters:
