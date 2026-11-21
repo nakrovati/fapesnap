@@ -43,13 +43,32 @@ type Downloader struct {
 	event      *application.EventManager
 }
 
+type MediaURLResolver func(pageURL string) (string, error)
+
 func NewDownloader(logger *slog.Logger, event *application.EventManager) *Downloader {
 	return &Downloader{
-		logger: logger,
-		event:  event,
-		httpClient: &http.Client{
-			Timeout: 60 * time.Second,
-		},
+		logger:     logger,
+		event:      event,
+		httpClient: newHTTPClient(),
+	}
+}
+
+func newHTTPClient() *http.Client {
+	transport := http.DefaultTransport
+
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	if ok {
+		clonedTransport := defaultTransport.Clone()
+		clonedTransport.ResponseHeaderTimeout = 60 * time.Second
+		transport = clonedTransport
+	}
+
+	return &http.Client{
+		Transport:     transport,
+		CheckRedirect: nil,
+		Jar:           nil,
+		// No overall timeout: large files may take longer to transfer.
+		Timeout: 0,
 	}
 }
 
@@ -60,6 +79,7 @@ func (d *Downloader) DownloadMediaItems(
 	providerName string,
 	collectionSlug string,
 	maxParallelDownloads int,
+	resolveMediaURL MediaURLResolver,
 ) error {
 	downloadDir, err := utils.GetCollectionDownloadDir(baseDownloadDir, providerName, collectionSlug)
 	if err != nil {
@@ -78,16 +98,30 @@ func (d *Downloader) DownloadMediaItems(
 
 	worker := func() {
 		for media := range jobs {
-			err := d.DownloadMedia(ctx, media.PageURL, media.URL, downloadDir)
-			if err != nil {
+			mediaURL, resolveErr := resolveMediaURLForItem(media, resolveMediaURL)
+			if resolveErr != nil {
 				atomic.AddInt64(&failedMediaCount, 1)
 
-				d.logger.Error("Failed to download media", "url", media.URL, "error", err)
+				d.logger.Error("Failed to resolve media URL", "pageUrl", media.PageURL, "error", resolveErr)
+
+				d.event.Emit("download:media-failed", DownloadMediaEvent{
+					PageURL: media.PageURL,
+					Error:   resolveErr.Error(),
+				})
 
 				continue
 			}
 
-			d.logger.Info("Media downloaded", "url", media.URL)
+			err := d.DownloadMedia(ctx, media.PageURL, mediaURL, downloadDir)
+			if err != nil {
+				atomic.AddInt64(&failedMediaCount, 1)
+
+				d.logger.Error("Failed to download media", "url", mediaURL, "error", err)
+
+				continue
+			}
+
+			d.logger.Info("Media downloaded", "url", mediaURL)
 
 			atomic.AddInt64(&downloadedMediaCount, 1)
 		}
@@ -122,6 +156,18 @@ func (d *Downloader) DownloadMediaItems(
 	}
 
 	return nil
+}
+
+func resolveMediaURLForItem(media providers.Media, resolver MediaURLResolver) (string, error) {
+	if media.URL != "" {
+		return media.URL, nil
+	}
+
+	if resolver == nil {
+		return "", errors.New("media URL resolver is not configured")
+	}
+
+	return resolver(media.PageURL)
 }
 
 func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir string) error {
@@ -191,7 +237,7 @@ func (d *Downloader) DownloadMedia(ctx context.Context, pageURL, url string, dir
 }
 
 func (d *Downloader) SaveMedia(resp *http.Response, src string, dir string) error {
-	fileName := filepath.Base(strings.Split(src, "?")[0])
+	fileName := mediaFileName(src)
 	filePath := filepath.Join(dir, fileName)
 
 	cleanDir := filepath.Clean(dir)
@@ -219,6 +265,35 @@ func (d *Downloader) SaveMedia(resp *http.Response, src string, dir string) erro
 	}
 
 	return nil
+}
+
+func mediaFileName(src string) string {
+	parsedURL, err := url.Parse(src)
+	if err == nil {
+		// Bunkr passes the original file name in the `n` query parameter.
+		if name := strings.TrimSpace(parsedURL.Query().Get("n")); name != "" {
+			name = filepath.Base(filepath.FromSlash(name))
+			if name != "." && name != string(filepath.Separator) && name != "" {
+				return sanitizeFileName(name)
+			}
+		}
+
+		return filepath.Base(parsedURL.Path)
+	}
+
+	return filepath.Base(strings.Split(src, "?")[0])
+}
+
+func sanitizeFileName(name string) string {
+	const invalidChars = `<>:"/\|?*`
+
+	return strings.Map(func(r rune) rune {
+		if r < 32 || strings.ContainsRune(invalidChars, r) {
+			return '_'
+		}
+
+		return r
+	}, name)
 }
 
 func deriveReferer(src string) string {

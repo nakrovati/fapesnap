@@ -75,18 +75,19 @@ func (a *AppService) DownloadMediaItems(collectionInput string, providerName str
 		return err
 	}
 
-	for i := range mediaItems {
-		if mediaItems[i].URL == "" {
-			mediaURL, err := a.scraper.ResolveMediaURL(mediaItems[i].PageURL, collectionSlug)
-			if err != nil {
-				return fmt.Errorf("failed to resolve media URL: %w", err)
-			}
-
-			mediaItems[i].URL = mediaURL
-		}
+	resolveMediaURL := func(pageURL string) (string, error) {
+		return a.scraper.ResolveMediaURL(pageURL, collectionSlug)
 	}
 
-	err = a.downloader.DownloadMediaItems(ctx, mediaItems, a.cfg.DownloadDir, providerName, collectionSlug, maxParallelDownloads)
+	err = a.downloader.DownloadMediaItems(
+		ctx,
+		mediaItems,
+		a.cfg.DownloadDir,
+		providerName,
+		collectionSlug,
+		maxParallelDownloads,
+		resolveMediaURL,
+	)
 	if err != nil {
 		a.app.Logger.Error("Error downloading media files", "error", err)
 

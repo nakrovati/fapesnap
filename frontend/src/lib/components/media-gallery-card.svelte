@@ -7,7 +7,6 @@
 	import Info from "@lucide/svelte/icons/info";
 	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
 	import X from "@lucide/svelte/icons/x";
-	import { Browser } from "@wailsio/runtime";
 
 	import { MediaType } from "#bindings/internal/providers/models.ts";
 	import { Badge } from "#lib/components/ui/badge/index.ts";
@@ -20,16 +19,7 @@
 	let status = $derived(media.downloadStatus);
 
 	async function handleDownloadMedia() {
-		if (
-			media.providerName === "bunkr" &&
-			(media.type === MediaType.MediaTypeVideo ||
-				media.type === MediaType.MediaTypeFile ||
-				media.type === MediaType.MediaTypeUnknown)
-		) {
-			await Browser.OpenURL(media.pageUrl);
-		} else {
-			await downloadMedia(media.pageUrl);
-		}
+		await downloadMedia(media.pageUrl);
 	}
 </script>
 
