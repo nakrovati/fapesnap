@@ -10,7 +10,7 @@
   <Identity
     Name="com.github.nakrovati.fapesnap"
     Publisher="CN=Fapesnap"
-    Version="2.2.4.0"
+    Version="2.4.1.0"
     ProcessorArchitecture="arm64" />
 
   <Properties>
